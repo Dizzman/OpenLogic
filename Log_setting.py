@@ -2,7 +2,7 @@ import logging
 import sys
 def InitLoger():
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
 
     stdout_handler = logging.StreamHandler(sys.stdout)
@@ -14,4 +14,4 @@ def InitLoger():
     file_handler.setFormatter(formatter)
 
     logger.addHandler(file_handler)
-   # logger.addHandler(stdout_handler)
+    logger.addHandler(stdout_handler)

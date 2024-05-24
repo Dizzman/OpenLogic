@@ -1,0 +1,23 @@
+﻿Started CPLEXStart version 6.6.2.1
+Started CPLEX version 12.9.0.0
+
+Initial LP has 213 rows, 223 columns, and 388 nonzeros.
+Time to read matrix = 0,01 sec.
+
+CPXPARAM_Preprocessing_Aggregator                100
+CPXPARAM_LPMethod                                2
+CPXPARAM_Threads                                 20
+Tried aggregator 3 times.
+LP Presolve eliminated 174 rows and 184 columns.
+Aggregator did 39 substitutions.
+All rows and columns eliminated.
+Presolve time = 0.00 sec. (0.12 ticks)
+
+CPXPARAM_Preprocessing_Aggregator                100
+CPXPARAM_Simplex_Display                         0
+CPXPARAM_LPMethod                                2
+CPXPARAM_Threads                                 20
+CPXPARAM_Parallel                                1
+Dual simplex - Optimal:  Objective = 1800
+Solution quality: Max.primal infeas. = 0, Max.dual infeas. = 0
+Solution time = 0.01 sec.   Iterations = 0
