@@ -7,16 +7,8 @@ MAX_REAL_STR = '10000000'
 from OL_Purchase import PurchasesClass
 from OL_Invetory import InventoryClass
 from OL_Sales import SalesClass
-#class OBJECT_TYPE(enum.Enum):
-   # Purchase=1
-    # Inventory=2
-    # Sales=3
-    # SortInv2Inv=4
-    # SortInv2Sale=5
-    # SortPurch2Inv=6
-    # MixInv2Inv=7
-    # MixInv2Sale=8
-    # MixPurch2Inv=9
+from OL_P2IMix import P2IMixClass
+from OL_I2SMix import I2SMixClass
 
 
 
@@ -39,7 +31,8 @@ class OLBaseModelClass():
         self.Purchases = {}
         self.Inventories = {}
         self.Sales = {}
-        self.Links = {}
+        self.LinkP2IMix = {}
+        self.LinkI2SMix = {}
         self.prefixDBTable = "T_OSL_"
         self.m_session_id = 1
         self.NameToType = {}
@@ -66,9 +59,10 @@ class OLBaseModelClass():
         return f'{self.prefixDBTable}Inventories'
     def getSalesNameTable(self):
         return f'{self.prefixDBTable}Sales'
-    def getLinksNameTable(self):
-        return f'{self.prefixDBTable}Links'
-
+    def getLinkP2IMixNameTable(self):
+        return f'{self.prefixDBTable}LinkP2IMix'
+    def getLinkI2SMixNameTable(self):
+        return f'{self.prefixDBTable}LinkI2SMix'
     def CreatePurchasesTable(self):
         self.cursor.execute(f'''
         CREATE TABLE  IF NOT EXISTS {self.getPurchasesNameTable()} 
@@ -142,48 +136,72 @@ class OLBaseModelClass():
 
     #def AddSalesObject(self, Objname):
     #    nameTable = self.getSalesNameTable()
-    def CreateLinksTable(self):
+    def CreateLinkP2IMixTable(self):
 
         self.cursor.execute(f'''               
-                CREATE TABLE IF NOT EXISTS {self.getLinksNameTable()}
+                CREATE TABLE IF NOT EXISTS {self.getLinkP2IMixNameTable()}
                 (
-                    _sessionID INTEGER  DEFAULT{self.m_session_id}                   
+                    _sessionID INTEGER  DEFAULT{self.m_session_id},   
                     ObjectName TEXT NOT NULL,
-                    FromObjectName TEXT NOT NULL,
-                    ToObjectName TEXT NOT NULL,
+                    TimePeriod TEXT NOT NULL,
                     FromLocation TEXT NOT NULL,
                     ToLocation TEXT NOT NULL,
                     ItemDescription TEXT NOT NULL,
                     Material TEXT NOT NULL,
+                    Yield REAL DEFAULT 1.0,
                     Attribute1 TEXT NOT NULL,
                     Attribute2 TEXT NOT NULL,
                     Attribute3 TEXT NOT NULL,
-                    FromRow_ID TEXT NOT NULL,
-                    ToLocation_ID TEXT NOT NULL,
-                    Material_ID TEXT NOT NULL,
+                    Attribute4 TEXT NOT NULL,
+                    MinUnits   REAL DEFAULT 0.0,
+                    MaxUnits   REAL DEFAULT {MAX_REAL_STR},
                     Row_ID INTEGER PRIMARY KEY
                 )''')
 
 
-        logging.debug("Created Links Table ")
+        logging.debug("Created Links P2IMix Table ")
+    def CreateLinkI2SMixTable(self):
 
-    #def AddSalesObject(self,Objname, namelink,nameFrom,nameTo,typeLink):
-    #    nameTable = self.getLinksNameTable()
+        self.cursor.execute(f'''               
+                CREATE TABLE IF NOT EXISTS {self.getLinkI2SMixNameTable()}
+                (
+                    _sessionID INTEGER  DEFAULT{self.m_session_id},   
+                    ObjectName TEXT NOT NULL,
+                    TimePeriod TEXT NOT NULL,
+                    FromLocation TEXT NOT NULL,
+                    ToLocation TEXT NOT NULL,
+                    ItemDescription TEXT NOT NULL,
+                    Material TEXT NOT NULL,
+                    Distribution REAL DEFAULT 1.0,
+                    Attribute1 TEXT NOT NULL,
+                    Attribute2 TEXT NOT NULL,
+                    Attribute3 TEXT NOT NULL,
+                    Attribute4 TEXT NOT NULL,
+                    MinUnits   REAL DEFAULT 0.0,
+                    MaxUnits   REAL DEFAULT {MAX_REAL_STR},
+                    Row_ID INTEGER PRIMARY KEY
+                )''')
 
-#     def AddPurchaseObject(self, Objname, xlsxfile):
-#         AddPurchaseObject(Objname,xlsxfile)
-# #         nameTable = self.getPurchasesNameTable()
+
+        logging.debug("Created Links P2IMix Table ")
+
     def getColumnsofTable(self,nameTable):
         self.cursor.execute(f"PRAGMA table_info({nameTable})")
         fetch = self.cursor.fetchall()
         return [i[1] for i in fetch ]
 
-    def AddInventoryObject_ByMTP_Rows(self,ObjName,xlsxfile):
+    def Add_Inventory_ObjectByMTPRows(self, ObjName, xlsxfile):
         self.Inventories[ObjName]=InventoryClass(self,ObjName)
         self.Inventories[ObjName].AddObject_Rows( xlsxfile)
-    def AddPurchaseObject_ByMTP_Rows(self,ObjName,xlsxfile):
+    def Add_Purchase_ObjectByMTPRows(self, ObjName, xlsxfile):
         self.Purchases[ObjName]=PurchasesClass(self,ObjName)
         self.Purchases[ObjName].AddObject_Rows(xlsxfile)
-    def AddSalesObject_ByMTP_Rows(self,ObjName,xlsxfile):
+    def Add_Sales_ObjectByMTPRows(self, ObjName, xlsxfile):
         self.Sales[ObjName]=SalesClass(self,ObjName)
         self.Sales[ObjName].AddObject_Rows(xlsxfile)
+    def Add_P2IMix_ObjectByMTPRows(self, ObjName, xlsxfile):
+        self.LinkP2IMix[ObjName]=P2IMixClass(self,ObjName)
+        self.LinkP2IMix[ObjName].AddObject_Rows(xlsxfile)
+    def Add_I2SMix_ObjectByMTPRows(self, ObjName, xlsxfile):
+        self.LinkI2SMix[ObjName]=I2SMixClass(self,ObjName)
+        self.LinkI2SMix[ObjName].AddObject_Rows(xlsxfile)

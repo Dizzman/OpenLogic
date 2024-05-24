@@ -13,15 +13,16 @@ bpath = os.getcwd()
 Model = OLBaseModelClass(namedb="Test1.db", namemodel="TestModel")
 #Model.CreateEmptyMaterialsTable()
 #Model.CreateEmptyLocationsTable()
-Model.CreatePurchasesTable()   # Create  Table for Purchase
-Model.CreateInventoryesTable() # Create  Table for Inventoryes
+Model.CreatePurchasesTable()   # Create  Table for Purchases
+Model.CreateInventoryesTable() # Create  Table for Inventories
 Model.CreateSalesTable()       # Create  Table for Sales
-Model.CreateLinksTable()       # Create  Table for Links
-#(nameFrom="Purchase1",namelink="LinkMix_Purchase1_To_Inventory1",nameTo="Inventory1",typeLink=OBJECT_TYPE.MixPurch2Inv)    # Create Empty Link SortPurch2Inv
-#Model.CreateEmptyLink(nameFrom="Inventory1",namelink="LinkMix_Inventory1_To_Sales1",nameTo="Sales1",typeLink=OBJECT_TYPE.MixInv2Sale)        # Create Empty Link SortPurch2Inv
+Model.CreateLinkP2IMixTable()       # Create  Table for P2I Links
+Model.CreateLinkI2SMixTable()       # Create  Table for I2S Links
 
-Model.AddPurchaseObject_ByMTP_Rows(ObjName="Purchase1",xlsxfile="Purchase1 - PurchaseActivityMTP.xlsx")
-Model.AddInventoryObject_ByMTP_Rows(ObjName="Inventory1",xlsxfile="Inventory1 - InventoryActivityMTP.xlsx")
-Model.AddSalesObject_ByMTP_Rows(ObjName="Sales1",xlsxfile="Sales1 - SalesActivityMTP.xlsx")
-#Model.AddInventoryObject(name="Inventory1")
+Model.Add_Purchase_ObjectByMTPRows(ObjName="Purchase1", xlsxfile="Purchase1 - PurchaseActivityMTP.xlsx")
+Model.Add_Inventory_ObjectByMTPRows(ObjName="Inventory1", xlsxfile="Inventory1 - InventoryActivityMTP.xlsx")
+Model.Add_Sales_ObjectByMTPRows(ObjName="Sales1", xlsxfile="Sales1 - SalesActivityMTP.xlsx")
+Model.Add_P2IMix_ObjectByMTPRows(ObjName="LinkP2IMix1",xlsxfile="Mix (Purch To Inv)1 - MixYieldMTP.xlsx")
+Model.Add_I2SMix_ObjectByMTPRows(ObjName="LinkP2IMix1",xlsxfile="Mix (Inv to Sales)1 - MixDistributionMTP.xlsx")
+
 #Model.
