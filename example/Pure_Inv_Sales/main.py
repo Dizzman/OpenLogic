@@ -25,4 +25,5 @@ Model.Add_Sales_ObjectByMTPRows(ObjName="Sales1", xlsxfile="Sales1 - SalesActivi
 Model.Add_P2IMix_ObjectByMTPRows(ObjName="LinkP2IMix1",xlsxfile="Mix (Purch To Inv)1 - MixYieldMTP.xlsx")
 Model.Add_I2SMix_ObjectByMTPRows(ObjName="LinkP2IMix1",xlsxfile="Mix (Inv to Sales)1 - MixDistributionMTP.xlsx")
 
-#Model.
+Model.BuildLP()
+Model.Solve()
