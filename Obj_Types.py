@@ -1,5 +1,6 @@
 import enum
 class OBJECT_TYPE(enum.Enum):
+    NONETYPE = 0
     Purchase=1
     Inventory=2
     Sales=3

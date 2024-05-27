@@ -5,13 +5,15 @@ from OL_BaseObject import OLBaseObject
 from Obj_Types import OBJECT_TYPE
 
 class I2SMixClass(OLBaseObject):
-        def __init__(self,BaseModel,ObjName):
+        def __init__(self,BaseModel,ObjName,FromObjectName,ToObecjName):
             super().__init__(BaseModel, ObjName)
             logging.debug("Create Map2Column I2SMix")
             self.m_nameTable = self.BaseModel.getLinkI2SMixNameTable()
             m_ol_list_column = self.BaseModel.getColumnsofTable(self.m_nameTable)
             self.m_mapper = Mapper(m_ol_list_column)
             self.m_mapper.openxlsmap('mapI2SColumnNames.xlsx')
-
+            self.FromObjectName = FromObjectName
+            self.ToObjectName = ToObecjName
+            self.ObjType = OBJECT_TYPE.MixInv2Sale
         def Add_MTP_Rows(self,xlsxfile):
             super().AddObject_Rows( self.nameObj,xlsxfile)

@@ -13,7 +13,7 @@ class InventoryClass(OLBaseObject):
             m_ol_list_column = self.BaseModel.getColumnsofTable(self.m_nameTable)
             self.m_mapper = Mapper(m_ol_list_column)
             self.m_mapper.openxlsmap('mapInventoryColumnNames.xlsx')
-
+            self.ObjType = OBJECT_TYPE.Inventory
         def Add_MTP_Rows(self,xlsxfile):
             super().AddObject_Rows(self.ObjName,xlsxfile)
 

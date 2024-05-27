@@ -13,6 +13,7 @@ class PurchasesClass(OLBaseObject):
             m_ol_list_column = self.BaseModel.getColumnsofTable(self.m_nameTable)
             self.m_mapper = Mapper(m_ol_list_column)
             self.m_mapper.openxlsmap('mapPurchaseColumnNames.xlsx')
+            self.ObjType = OBJECT_TYPE.Purchase
 
         def Add_MTP_Rows(self,xlsxfile):
             super().AddObject_Rows( self.nameObj,xlsxfile)

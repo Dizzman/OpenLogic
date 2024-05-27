@@ -130,6 +130,7 @@ class OLBaseModelClass():
             PriceUnit REAL DEFAULT 0,
             MinUnits  REAL DEFAULT 0,
             MaxUnits  REAL DEFAULT {MAX_REAL_STR},
+            VarType TEXT NOT NULL,
             Row_ID INTEGER PRIMARY KEY
         )''')
         logging.debug("Created Sales Table ")
@@ -141,8 +142,10 @@ class OLBaseModelClass():
         self.cursor.execute(f'''               
                 CREATE TABLE IF NOT EXISTS {self.getLinkP2IMixNameTable()}
                 (
-                    _sessionID INTEGER  DEFAULT{self.m_session_id},   
+                    _sessionID INTEGER  DEFAULT{self.m_session_id},                   
                     ObjectName TEXT NOT NULL,
+                    FromObjectName TEXT NOT NULL,
+                    ToObjectName TEXT NOT NULL,
                     TimePeriod TEXT NOT NULL,
                     FromLocation TEXT NOT NULL,
                     ToLocation TEXT NOT NULL,
@@ -167,6 +170,8 @@ class OLBaseModelClass():
                 (
                     _sessionID INTEGER  DEFAULT{self.m_session_id},   
                     ObjectName TEXT NOT NULL,
+                    FromObjectName TEXT NOT NULL,
+                    ToObjectName TEXT NOT NULL,
                     TimePeriod TEXT NOT NULL,
                     FromLocation TEXT NOT NULL,
                     ToLocation TEXT NOT NULL,
@@ -199,9 +204,14 @@ class OLBaseModelClass():
     def Add_Sales_ObjectByMTPRows(self, ObjName, xlsxfile):
         self.Sales[ObjName]=SalesClass(self,ObjName)
         self.Sales[ObjName].AddObject_Rows(xlsxfile)
-    def Add_P2IMix_ObjectByMTPRows(self, ObjName, xlsxfile):
-        self.LinkP2IMix[ObjName]=P2IMixClass(self,ObjName)
+    def Add_P2IMix_ObjectByMTPRows(self, ObjName, FromObjectName, ToObjectName, xlsxfile):
+        self.LinkP2IMix[ObjName]=P2IMixClass(self,ObjName,FromObjectName, ToObjectName)
         self.LinkP2IMix[ObjName].AddObject_Rows(xlsxfile)
-    def Add_I2SMix_ObjectByMTPRows(self, ObjName, xlsxfile):
-        self.LinkI2SMix[ObjName]=I2SMixClass(self,ObjName)
+    def Add_I2SMix_ObjectByMTPRows(self, ObjName,FromObjectName, ToObjectName, xlsxfile):
+        self.LinkI2SMix[ObjName]=I2SMixClass(self,ObjName,FromObjectName, ToObjectName)
         self.LinkI2SMix[ObjName].AddObject_Rows(xlsxfile)
+
+    def Build_BackPropogationLP(self):
+    # Start from Sale
+
+        pass
