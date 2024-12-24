@@ -35,10 +35,12 @@ class LoaderSourceDataToBD():
         Open the Excel file and load the workbook.
         """
         try:
-            self.workbook = openpyxl.load_workbook(self.file_path)
+            self.workbook = openpyxl.load_workbook(self.filename)
         except FileNotFoundError:
-            raise FileNotFoundError(f"The file at {self.file_path} was not found.")
+            self.logger.fatal(f"The file at {self.filename} was not found. ")
+            raise FileNotFoundError(f"The file at {self.filename} was not found.")
         except Exception as e:
+            self.logger.fatal(f"An error occurred while opening the file: {e} ")
             raise Exception(f"An error occurred while opening the file: {e}")
 
     def get_sheet(self, sheet_name):
@@ -56,11 +58,13 @@ class LoaderSourceDataToBD():
         except KeyError:
             raise KeyError(f"Sheet '{sheet_name}' does not exist in the workbook.")
 
-    def save_to_database(self, sheet_name, table_name):
+    def save_to_database(self):
         """
         Save data from into the database.
 
         :param sheet_name: Name of the sheet to save data from
         :param table_name: Name of the database table to insert data into
         """
-        sheet = self.get_sheet(sheet_name)
+        self.open_xlsx_file()
+        sheet = self.get_sheet("Vessels")
+
