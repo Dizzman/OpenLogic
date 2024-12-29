@@ -24,6 +24,32 @@ class OLEngineCore:
             logging.error(f"Error connecting to the database: {e}")
             raise
 
+    def get_currdb(self):
+        if self.conn is not None:
+            curdb = self.conn.get_dsn_parameters()['dbname']
+        return curdb
+    def connect_to_database(self,project_name):
+        try:
+            if  self.conn is not None:
+                curdb=self.conn.get_dsn_parameters()['dbname']
+                logging.info(f"Current connect: {curdb}")
+                logging.info(f"Close opened connect")
+                self.conn.close()
+            # Устанавливаем соединение с новой базой данных
+            self.conn= psycopg2.connect(
+                user=self.config_db.user,
+                password=self.config_db.password,
+                host=self.config_db.host,
+                port=self.config_db.port,
+                database=project_name
+            )
+            self.cur = self.conn.cursor()
+            logging.info(f"Connected to : {project_name}")
+
+
+        except Exception as e:
+            logging.error(f"Error to connect {project_name}: {e}")
+            return None
     def list_databases(self):
         """List all databases in the PostgreSQL instance."""
         try:
@@ -77,14 +103,15 @@ class OLEngineCore:
         """Creates a table for storing scenarios and adds a new scenario."""
         try:
             self.cur.execute("""
-                CREATE TABLE IF NOT EXISTS scenarios (
-                    id SERIAL PRIMARY KEY,          
-                    scenario_name TEXT,             
+                CREATE TABLE IF NOT EXISTS T_Scenarios (
+                    id serial PRIMARY KEY,          
+                    scenario_name TEXT,     
+                    is_active INTEGER DEFAULT 0 UNIQUE,        
                     comment TEXT                    
                 );
             """)
             self.cur.execute("""
-                INSERT INTO scenarios (scenario_name, comment) 
+                INSERT INTO T_Scenarios (scenario_name, comment) 
                 VALUES (%s, %s);
             """, (scenario_name, comment))
             self.conn.commit()
@@ -92,12 +119,22 @@ class OLEngineCore:
         except psycopg2.Error as e:
             logging.error(f"Error while creating scenario: {e}")
 
+    def getid_current_scenario(self):
+        self.cur.execute(f"select id from T_Scenarios WHERE is_active = 1")
+        ids = self.cur.fetchall()
+        return [id[0] for id in ids][0]
+    def setcurrent_scenario(self,project_name, scenario_name: str):
+        self.cur.execute(f"UPDATE T_Scenarios SET is_active = 0 WHERE is_active = 1")
+        self.cur.execute(f"UPDATE T_Scenarios SET is_active = 1 WHERE scenario_name = '{scenario_name}'")
+        self.conn.commit()
+        self.active_scenario_name = scenario_name
+        self.active_scenario_id = self.getid_current_scenario()
     def remove_all_scenarios(self):
         """Remove all scenarios from the 'scenarios' table."""
         try:
             # Check if there are any scenarios using COUNT
             self.cur.execute("""
-                DROP TABLE IF EXISTS scenarios;
+                DROP TABLE IF EXISTS T_Scenarios;
             """)
 
         except psycopg2.Error as e:
