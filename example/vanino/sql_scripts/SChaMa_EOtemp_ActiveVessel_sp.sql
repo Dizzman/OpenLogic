@@ -6,19 +6,22 @@
 -- Change date:   11.12.2017
 -- Description:   New field 'DiscreteDaysVes' in table
 -- =============================================
-CREATE OR REPLACE FUNCTION EOtemp_ActiveVessel_sp(ScenarioID INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE EOtemp_ActiveVessel_sp(ScenarioID INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
+    -- Удаляем старые данные для указанного ScenarioID
     DELETE FROM T_EOtemp_ActiveVessel
     WHERE _ScenarioID = ScenarioID;
 
+    -- Вставляем новые данные
     INSERT INTO T_EOtemp_ActiveVessel
         (_ScenarioID, VesselId,
          VesselCode, EO_Vessel,
          DiscreteDaysVes,
          DayOfStart, DaysToLoad,
          Demur_kS, MaxSpeed_kT,
-         VolMin_kT, VolMax_kT,maxshiftdays )
+         VolMin_kT, VolMax_kT, maxshiftdays)
     SELECT
         ScenarioID,
         Id,
@@ -35,7 +38,7 @@ BEGIN
     FROM
         T_Vessels
     WHERE
-        _ScenarioID= ScenarioID
+        _ScenarioID = ScenarioID
         AND FIX = 0;
 END;
-$$ LANGUAGE plpgsql;
+$$;

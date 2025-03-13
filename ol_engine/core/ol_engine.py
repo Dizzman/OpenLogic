@@ -1,9 +1,10 @@
 import sys
-sys.path.append('../')
+import os
+
 import logging
 import psycopg2
 from  config.db_config import DatabaseConfig
-
+import  re
 
 class OLEngineCore:
     def __init__(self,config_db:DatabaseConfig):
@@ -18,10 +19,13 @@ class OLEngineCore:
             self.conn.autocommit = True
             self.cur = self.conn.cursor()
             self.cur.execute("SELECT version();")
-            logging.info(self.cur.fetchone())
+            self.logger = logging.getLogger(self.__class__.__name__)
+            self.logger.info(
+                f"set DB name = {self.get_currdb()} ")
+            self.logger.info(self.cur.fetchone())
             self.list_databases()
         except psycopg2.Error as e:
-            logging.error(f"Error connecting to the database: {e}")
+            self.logger.error(f"Error connecting to the database: {e}")
             raise
 
     def get_currdb(self):
@@ -32,8 +36,8 @@ class OLEngineCore:
         try:
             if  self.conn is not None:
                 curdb=self.conn.get_dsn_parameters()['dbname']
-                logging.info(f"Current connect: {curdb}")
-                logging.info(f"Close opened connect")
+                self.logger.info(f"Current connect: {curdb}")
+                self.logger.info(f"Close opened connect")
                 self.conn.close()
             # Устанавливаем соединение с новой базой данных
             self.conn= psycopg2.connect(
@@ -44,21 +48,21 @@ class OLEngineCore:
                 database=project_name
             )
             self.cur = self.conn.cursor()
-            logging.info(f"Connected to : {project_name}")
+            self.logger.info(f"Connected to : {project_name}")
 
 
         except Exception as e:
-            logging.error(f"Error to connect {project_name}: {e}")
+            self.logger.error(f"Error to connect {project_name}: {e}")
             return None
     def list_databases(self):
         """List all databases in the PostgreSQL instance."""
         try:
             self.cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
             databases = self.cur.fetchall()
-            logging.info(f"Databases in the system: {databases}")
+            self.logger.info(f"Databases in the system: {databases}")
             return databases
         except psycopg2.Error as e:
-            logging.error(f"Error while listing databases: {e}")
+            self.logger.error(f"Error while listing databases: {e}")
             return []
 
     def create_projectDB(self, project_name):
@@ -67,7 +71,7 @@ class OLEngineCore:
 
             self.cur.execute(f"CREATE DATABASE {project_name};")
             self.conn.commit()
-            logging.info(f"Database '{project_name}' successfully created.")
+            self.logger.info(f"Database '{project_name}' successfully created.")
 
             self.cur.close()
             self.conn.close()
@@ -80,14 +84,14 @@ class OLEngineCore:
                 port=self.config_db.port
             )
             self.cur = self.conn.cursor()
-            logging.info(f"Connected to the newly created database '{project_name}'.")
+            self.logger.info(f"Connected to the newly created database '{project_name}'.")
 
 
             self.conn.commit()
-            logging.info(f"Table 'projects' created in database '{project_name}'.")
+            self.logger.info(f"Table 'projects' created in database '{project_name}'.")
 
         except psycopg2.Error as e:
-            logging.error(f"Error while creating the project database: {e}")
+            self.logger.error(f"Error while creating the project database: {e}")
 
     def remove_projectDB(self, project_name):
         """Removes the project database."""
@@ -95,9 +99,9 @@ class OLEngineCore:
 
             self.cur.execute(f"DROP DATABASE IF EXISTS {project_name};")
             self.conn.commit()
-            logging.info(f"Database '{project_name}' successfully removed.")
+            self.logger.info(f"Database '{project_name}' successfully removed.")
         except psycopg2.Error as e:
-            logging.error(f"Error while removing the project database: {e}")
+            self.logger.error(f"Error while removing the project database: {e}")
 
     def create_scenario(self, scenario_name:str,comment:str):
         """Creates a table for storing scenarios and adds a new scenario."""
@@ -115,9 +119,9 @@ class OLEngineCore:
                 VALUES (%s, %s);
             """, (scenario_name, comment))
             self.conn.commit()
-            logging.info(f"Scenario with ID {scenario_name} successfully created.")
+            self.logger.info(f"Scenario with ID {scenario_name} successfully created.")
         except psycopg2.Error as e:
-            logging.error(f"Error while creating scenario: {e}")
+            self.logger.error(f"Error while creating scenario: {e}")
 
     def getid_current_scenario(self):
         self.cur.execute(f"select id from T_Scenarios WHERE is_active = 1")
@@ -138,7 +142,7 @@ class OLEngineCore:
             """)
 
         except psycopg2.Error as e:
-            logging.error(f"Error while checking or removing scenarios: {e}")
+            self.logger.error(f"Error while checking or removing scenarios: {e}")
 
             raise
     def close_connection(self):
@@ -147,4 +151,60 @@ class OLEngineCore:
             self.cur.close()
         if self.conn:
             self.conn.close()
-        logging.info("Database connection closed.")
+        self.logger.info("Database connection closed.")
+
+    def extract_table_name(self, sql_query):
+        """
+        Извлекает имя таблицы из SQL-запроса CREATE TABLE.
+        """
+        # Регулярное выражение для поиска имени таблицы
+        match = re.search(r"CREATE TABLE (?:IF NOT EXISTS )?(\w+)", sql_query, re.IGNORECASE)
+        if match:
+            return match.group(1)  # Возвращаем имя таблицы
+        return None
+
+    def extract_procedure_or_function_name(self, sql_query):
+        """
+        Извлекает имя процедуры или функции из SQL-запроса.
+        """
+        # Регулярное выражение для поиска имени процедуры или функции
+        match = re.search(
+            r"CREATE OR REPLACE (?:PROCEDURE|FUNCTION)\s+(\w+)",
+            sql_query,
+            re.IGNORECASE
+        )
+        if match:
+            return match.group(1)  # Возвращаем имя процедуры или функции
+        return None
+    def extract_table_name(self, sql_query):
+        """
+        Извлекает имя таблицы из SQL-запроса CREATE TABLE.
+        """
+        # Регулярное выражение для поиска имени таблицы
+        match = re.search(r"CREATE TABLE (?:IF NOT EXISTS )?(\w+)", sql_query, re.IGNORECASE)
+        if match:
+            return match.group(1)  # Возвращаем имя таблицы
+        return None
+    def execute_sql_file(self, file_path):
+        try:
+            with open(file_path, 'r',encoding="utf-8") as file:
+                sql_script = file.read()
+                self.cur.execute(sql_script)
+                #self.ol_engine.cur.execute("SELECT public.eosms_run_all_sp(%s);", (self.ol_engine.active_scenario_id,))
+                self.conn.commit()   # Commit changes
+                self.logger.info(f"SQL procedure {self.extract_procedure_or_function_name(sql_script)} in {file_path} executed")
+        except Exception as e:
+            self.logger.info(f"Error executed SQL файла: {e}")
+            self.conn.rollback()  # Rollback changes in case of error
+    def add_sql_procedure_from_file(self, file_path):
+        try:
+            with open(file_path, 'r',encoding="utf-8") as file:
+                sql_script = file.read()
+
+                self.cur.execute(sql_script)
+                self.conn.commit()   # Commit changes
+                self.logger.info(
+                    f"SQL procedure {self.extract_procedure_or_function_name(sql_script)} in {file_path} try added ")
+        except Exception as e:
+            self.logger.info(f"Error: {self.extract_procedure_or_function_name(sql_script)} executed SQL файла: {e} ")
+            self.rollback()  # Rollback changes in case of error

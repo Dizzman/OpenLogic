@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.eosms_run_all_sp(config_id INT)
+CREATE OR REPLACE PROCEDURE public.eosms_run_all_sp(config_id INT)
 RETURNS VOID AS $$
 DECLARE
     debug_level INT := 0;

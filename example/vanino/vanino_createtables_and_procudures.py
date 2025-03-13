@@ -52,7 +52,12 @@ class LoaderSourceDataToBD():
             raise Exception(f"An error occurred while opening the file: {e}")
 
     def deleteallsta_tables(self):
-        tables = ['T_Configuration','T_Vessels','T_EOtemp_ActiveVessel']
+        tables = ['T_Configuration',
+                  'T_Vessels.sql',
+                  'T_EOtemp_ActiveVessel',
+                  'EO_E_TimePeriodDefinitions',
+                  'EO_E_LocationDefinitions'
+                  ]
         for i in tables:
             self.ol_engine.cur.execute(f"DROP TABLE IF EXISTS {i}")
         self.ol_engine.conn.commit()
@@ -62,48 +67,36 @@ class LoaderSourceDataToBD():
         value = sheet.cell(row=row, column=col).value
         return value if value is not None else default
 
-    def createt_T_EOtemp_ActiveVessel(self):
-        self.ol_engine.cur.execute("""CREATE TABLE IF NOT EXISTS T_EOtemp_ActiveVessel  
-        (
-    _ScenarioID          INT,
-    vesselid          INT,
-    vesselcode        VARCHAR,
-    eo_vessel         VARCHAR,
-    dayofstart        INT,
-    daystoload        INT,
-    discretedaysves   INT,
-    demur_ks          NUMERIC,
-    maxspeed_kt       NUMERIC,
-    volmin_kt         NUMERIC,
-    volmax_kt         NUMERIC,
-    maxshiftdays      INT);""")
+    def create_Configuration(self):
+        logging.info("Create DataTable: Configuration")
+        self.ol_engine.cur.execute("""
+                CREATE TABLE IF NOT EXISTS T_Configuration (
+                    _ScenarioID INT,
+                    NumberOfPiles INT,
+                    NumberOfVessels INT,
+                    NumberOfDiscreteDays INT,
+                    NumberOfQCs INT,
+                    NumberOfDays INT,
+                    ConfirmedDays INT,
+                    DVZHDDays INT,
+                    FarawayDays INT,
+                    PlannedDays INT,
+                    NumberOfWeekPeriods INT,
+                    NumberOf2WeekPeriods INT,
+                    Maxshiftdefault INT);
+                """)
         self.ol_engine.conn.commit()
+    def create_EO_Tables(self):
+        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_LocationDefinition.sql")
+        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_TimePeriodDefinitions.sql")
+        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_C_ConstraintSetDefinitions.sql")
+
     def load_vessels_from_xls_to_db(self):
         sheet_vessels = self.workbook_datafile["Vessels"]
 
-        self.ol_engine.cur.execute("""
-                             CREATE TABLE IF NOT EXISTS T_Vessels (                           
-                                  _ScenarioID INT,
-                                  Id   serial primary key,
-                                  VesselCode VARCHAR,
-                                  DaysBeforeArrival INT,
-                                  VesselName VARCHAR,
-                                  Customer VARCHAR,
-                                  Grade VARCHAR,
-                                  Demurrage NUMERIC,
-                                  MaxLoadSpeedContract NUMERIC,
-                                  MaxLoadSpeedReal NUMERIC,
-                                  VolumeMin NUMERIC,
-                                  VolumeMax NUMERIC,
-                                  Contract VARCHAR,
-                                  FIX INT,
-                                  Days NUMERIC,
-                                  Basis VARCHAR,
-                                  Maxshift INT);
-                             """)
         # Check for records with _ScenarioID = 1
         self.ol_engine.cur.execute("""
-                       SELECT COUNT(*) FROM T_Vessels 
+                       SELECT COUNT(*) FROM T_Vessels
                        WHERE _ScenarioID= %s
                        """, (self.ol_engine.active_scenario_id,))
         count = self.ol_engine.cur.fetchone()[0]  # Get the count of records
@@ -118,7 +111,7 @@ class LoaderSourceDataToBD():
                            """, (self.ol_engine.active_scenario_id,))
             self.logger.info(f"Records with _ScenarioID = %d deleted.", self.ol_engine.active_scenario_id)
         else:
-            self.logger.info("No records found with _ScenarioID = %d. Deletion not required.",
+            self.logger.info("No records found with _ScenarioID = %d. Delete not required.",
                              self.ol_engine.active_scenario_id)
         self.logger.info("Load Vessels data")
 
@@ -193,22 +186,7 @@ class LoaderSourceDataToBD():
         }
         self.logger.info("Data extracted: %s", self.config_data)
         # Create table if it does not exist
-        self.ol_engine.cur.execute("""
-                CREATE TABLE IF NOT EXISTS T_Configuration (
-                    _ScenarioID INT,
-                    NumberOfPiles INT,
-                    NumberOfVessels INT,
-                    NumberOfDiscreteDays INT,
-                    NumberOfQCs INT,
-                    NumberOfDays INT,
-                    ConfirmedDays INT,
-                    DVZHDDays INT,
-                    FarawayDays INT,
-                    PlannedDays INT,
-                    NumberOfWeekPeriods INT,
-                    NumberOf2WeekPeriods INT,
-                    Maxshiftdefault INT);
-                """)
+
         self.logger.info("Configuration table checked/created.")
 
         # Check for records with _ScenarioID = 1
@@ -266,32 +244,63 @@ class LoaderSourceDataToBD():
     #     self.openconfig_xlsx_file()
     #     sheet = self.workbook_conffile["Config"]
     #     pass
+    def getall_proc(self):
+        self.ol_engine.cur.execute(
+                f"SELECT proname AS procedure_name "
+                f"FROM pg_proc "
+                f"WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
+                f"ORDER BY procedure_name;"
+            )
+        proclist = self.ol_engine.cur.fetchall()
+        return proclist
     def delete_all_procedures(self):
-        proc_list=['public.eosms_run_all_sp(int4)','public.eotemp_activevessel_sp(int4)']
+        self.ol_engine.cur.execute(
+            f"SELECT proname AS procedure_name "
+            f"FROM pg_proc "
+            f"WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
+            f"ORDER BY procedure_name;"
+        )
+        proclist = self.ol_engine.cur.fetchall()
+        proc_list = [item[0] for item in proclist]
+        self.logger.info(f"Find procedures in {proc_list}")
+        if len(proc_list)==0:
+            proc_list=['public.eosms_run_all_sp(int4)',
+                   'public.eotemp_activevessel_sp(int4)',
+                   'public.eo_e_timeperioddefinitions_sp(int64)'
+                   ]
         for i in proc_list:
             sql = f"DROP FUNCTION IF EXISTS {i} "
             self.ol_engine.cur.execute(sql)
         self.ol_engine.conn.commit()
 
-    def execute_sql_file(self, file_path):
-        try:
-            with open(file_path, 'r',encoding="utf-8") as file:
-                sql_script = file.read()
-                self.ol_engine.cur.execute(sql_script)
-                self.ol_engine.cur.execute("SELECT public.eosms_run_all_sp(%s);", (self.ol_engine.active_scenario_id,))
-                self.ol_engine.conn.commit()   # Commit changes
-                self.logger.info(f"SQL procedure {file_path} added")
-        except Exception as e:
-            self.logger.info(f"Error executed SQL файла: {e}")
-            self.ol_engine.conn.rollback()  # Rollback changes in case of error
+
 
     def add_sql_procedure_from_file(self, file_path):
+        self.ol_engine.add_sql_procedure_from_file(file_path)
+
+    def call_sql_procedure_for_active_scenario(self, procedure_name, *args):
+        """
+        Вызывает SQL-процедуру для активного сценария.
+
+        :param procedure_name: Имя процедуры.
+        :param args: Аргументы процедуры (если есть).
+        """
         try:
-            with open(file_path, 'r',encoding="utf-8") as file:
-                sql_script = file.read()
-                self.ol_engine.cur.execute(sql_script)
-                self.ol_engine.conn.commit()   # Commit changes
-                self.logger.info(f"SQL procedure {file_path} added")
+            # Формируем запрос для вызова процедуры
+            query = f"CALL {procedure_name}(%s);"
+
+            # Выполняем запрос с активным scenario_id
+            self.ol_engine.cur.execute(query, (self.ol_engine.active_scenario_id,))
+
+            # Фиксируем изменения
+            self.ol_engine.conn.commit()
+
+            # Логируем успешный вызов
+            self.logger.info(f"Процедура {procedure_name} успешно вызвана.")
         except Exception as e:
-            self.logger.info(f"Error executed SQL файла: {e}")
-            self.ol_engine.conn.rollback()  # Rollback changes in case of error
+            # Логируем ошибку и откатываем транзакцию
+            self.logger.error(f"Ошибка вызова процедуры {procedure_name}: {e}")
+            self.ol_engine.conn.rollback()
+
+    def execute_sql_file(self,pathsql):
+            self.ol_engine.execute_sql_file(pathsql)
