@@ -115,10 +115,39 @@ class LoaderSourceDataToBD():
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItS_MixDistribution.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_TransferActivity.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_FromShipmentDescription.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_ToShipmentDescription.sql")
 
         except Exception as e:
             self.logger.fatal(f"Exit program ")
             exit(1)
+
+    def load_PilesQ(self):
+        PilesQ = self.workbook_datafile["quality"]
+        for qi in range(1, 1+self.config_data['NumberOfQCs']):
+            for pi in range(1, self.config_data.get('NumberOfPiles') + 1):
+                PileName = PilesQ.cell(1, 1 + pi).value
+                Value = PilesQ.cell(3+qi, 1 + pi).value
+                QName = PilesQ.cell(3+qi, 1 ).value
+                self.ol_engine.cur.execute("""
+                                    SELECT Id FROM T_Piles 
+                                    WHERE PileName = %s AND _ScenarioID = %s
+
+                                    """, (PileName, self.ol_engine.active_scenario_id))
+                pile_id = self.ol_engine.cur.fetchone()
+                print(pile_id,PileName)
+                self.ol_engine.cur.execute("""
+                                                    SELECT Id FROM T_QltCharacteristics 
+                                                    WHERE QualityName = %s AND _ScenarioID = %s
+                                                    """, (QName, self.ol_engine.active_scenario_id))
+                q_id = self.ol_engine.cur.fetchone()
+
+                self.ol_engine.cur.execute("""
+                                            INSERT INTO T_PileQuality
+                                            (_ScenarioID,PileId, QualityId, Value) 
+                                            VALUES (%s, %s, %s,%s )
+                                            """, (
+                self.ol_engine.active_scenario_id,  pi,q_id,  Value))
+                self.ol_engine.conn.commit()
 
     def load_Vol(self):
         MinVol = self.workbook_datafile["MinVolume"]
@@ -153,7 +182,7 @@ class LoaderSourceDataToBD():
                             INSERT INTO T_Volumes 
                             (_ScenarioID,VesselId, PileId, MinVolume, MaxVolume,Revenue,VolumePlan) 
                             VALUES (%s, %s, %s, %s , %s, %s, 0 )
-                            """, (self.ol_engine.active_scenario_id,vessel_id[0], pile_id[0], mivol, mavol,11.111))
+                            """, (self.ol_engine.active_scenario_id,vessel_id[0], pile_id[0], mivol, mavol,rev))
                         self.ol_engine.conn.commit()
                     except Exception as e:
                         self.ol_engine.conn.rollback()

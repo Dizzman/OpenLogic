@@ -37,6 +37,7 @@ A.execute_sql_file("./sql_scripts/T_tables/T_EOtemp_ActiveVessel.sql")
 A.execute_sql_file("./sql_scripts/T_tables/T_Vessels.sql")
 A.execute_sql_file("./sql_scripts/T_tables/T_Volumes.sql")
 A.execute_sql_file("./sql_scripts/T_tables/T_Piles.sql")
+A.execute_sql_file("./sql_scripts/T_tables/T_PileQuality.sql")
 A.execute_sql_file("./sql_scripts/T_tables/T_QltCharacteristics.sql")
 A.execute_sql_file("./sql_scripts/T_tables/T_QualityRestrictions.sql")
 
@@ -47,6 +48,8 @@ A.load_vessels_from_xls_to_db()
 A.load_cargo_data()
 A.load_Q()
 A.load_Vol()
+A.load_PilesQ()
+
 A.create_EO_Tables()
 
 
@@ -66,6 +69,8 @@ A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItS_MixDistribu
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_I_InventoryActivity_Ships_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_TransferActivity_Piles_to_Ships_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_FromShipmentDescription_Piles_to_Ships_sp.sql')
+A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_ToShipmentDescription_Piles_to_Ships_sp.sql')
+
 #A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EOSMS_RunAllSP_sp.sql')
 
 print(A.getall_proc())
@@ -84,7 +89,7 @@ A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItS_MixDistribution_S
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_I_InventoryActivity_Ships_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_TransferActivity_Piles_to_Ships_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_FromShipmentDescription_Piles_to_Ships_sp')
-A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_FromShipmentDescription_Piles_to_Ships_sp')
+A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_ToShipmentDescription_Piles_to_Ships_sp')
 
 
 logging.info("fff")
