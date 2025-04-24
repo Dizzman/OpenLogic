@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS T_EOtemp_ActiveVessel (
     dayofstart INT,
     daystoload INT,
     discretedaysves INT,
-    demur_ks NUMERIC,
-    maxspeed_kt NUMERIC,
-    volmin_kt NUMERIC,
-    volmax_kt NUMERIC,
+    demur_ks FLOAT,
+    maxspeed_kt FLOAT,
+    volmin_kt FLOAT,
+    volmax_kt FLOAT,
     maxshiftdays INT
 );

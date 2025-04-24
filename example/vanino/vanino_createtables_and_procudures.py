@@ -16,7 +16,7 @@ class LoaderSourceDataToBD():
         self.ol_engine = ol_engeen
         self.workbook = None
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info(f"set datafile= {self.datafile}, conffile= {self.conffile} DB name = {self.ol_engine.get_currdb()} Scenario_id= { self.ol_engine.active_scenario_id}")
+        #self.logger.info(f"set datafile= {self.datafile}, conffile= {self.conffile} DB name = {self.ol_engine.get_currdb()} Scenario_id= { self.ol_engine.active_scenario_id}")
         self.openconfig_xlsx_file()
         self.opendata_xlsx_file()
         self.logger.info("xls files opened")
@@ -52,14 +52,29 @@ class LoaderSourceDataToBD():
             raise Exception(f"An error occurred while opening the file: {e}")
 
     def deleteallsta_tables(self):
-        tables = ['T_Configuration',
-                  'T_Vessels.sql',
-                  'T_EOtemp_ActiveVessel',
-                  'EO_E_TimePeriodDefinitions',
-                  'EO_E_LocationDefinitions'
-                  ]
-        for i in tables:
-            self.ol_engine.cur.execute(f"DROP TABLE IF EXISTS {i}")
+        # 1. Получаем список всех таблиц
+        self.ol_engine.cur.execute("""
+                   SELECT table_name 
+                   FROM information_schema.tables 
+                   WHERE table_schema = 'public' 
+                   AND table_type = 'BASE TABLE'
+               """)
+        tables = self.ol_engine.cur.fetchall()
+
+        if not tables:
+            print("В базе данных нет таблиц для удаления")
+            return
+
+        # 2. Формируем и выполняем SQL для удаления всех таблиц
+        logging.info(f"Found tables to drop: {len(tables)}")
+        for table in tables:
+            table_name = table[0]
+            try:
+                self.ol_engine.cur.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE')
+                logging.info(f"Table {table_name} successfully dropped")
+            except Exception as e:
+                logging.error(f"Error dropping table {table_name}: {e}")
+
         self.ol_engine.conn.commit()
 
 
@@ -87,9 +102,241 @@ class LoaderSourceDataToBD():
                 """)
         self.ol_engine.conn.commit()
     def create_EO_Tables(self):
-        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_LocationDefinition.sql")
-        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_TimePeriodDefinitions.sql")
-        self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_C_ConstraintSetDefinitions.sql")
+        try:
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_LocationDefinition.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_TimePeriodDefinitions.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_E_LocationDefinitionsMTP.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_C_ConstraintSetDefinitions.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_A_AttributeDefinitions.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_P_PurchaseActivity.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_PtI_MixYield.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_I_InventoryActivity.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_S_SalesActivity.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItS_MixDistribution.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_TransferActivity.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_FromShipmentDescription.sql")
+
+        except Exception as e:
+            self.logger.fatal(f"Exit program ")
+            exit(1)
+
+    def load_Vol(self):
+        MinVol = self.workbook_datafile["MinVolume"]
+        MaxVol = self.workbook_datafile["MaxVolume"]
+        Revenue = self.workbook_datafile["Revenue"]
+        for vi in range(1, self.config_data.get('NumberOfVessels') + 1):
+            for pi in range(1, self.config_data.get('NumberOfPiles') + 1):
+                # Get values from Excel
+                PileName = MinVol.cell(1, 3 + pi).value
+                VesName = MinVol.cell(3 + vi, 2).value
+                mivol = MinVol.cell(3 + vi, 3 + pi).value
+                mavol = MaxVol.cell(3 + vi, 3 + pi).value
+                rev=Revenue.cell(4 + vi, 8 + pi).value
+                # Find vessel_id
+                self.ol_engine.cur.execute("""
+                    SELECT Id FROM T_Vessels 
+                    WHERE VesselName = %s AND _ScenarioID = %s
+                    """, (VesName, self.ol_engine.active_scenario_id))
+                vessel_id = self.ol_engine.cur.fetchone()
+
+                # Find pile_id (analogous to vessel_id query)
+                self.ol_engine.cur.execute("""
+                    SELECT Id FROM T_Piles 
+                    WHERE PileName = %s AND _ScenarioID = %s
+                    """, (PileName, self.ol_engine.active_scenario_id))
+                pile_id = self.ol_engine.cur.fetchone()
+
+                # Insert into T_Volumes if both IDs exist
+                if vessel_id and pile_id:
+                    try:
+                        self.ol_engine.cur.execute("""
+                            INSERT INTO T_Volumes 
+                            (_ScenarioID,VesselId, PileId, MinVolume, MaxVolume,Revenue,VolumePlan) 
+                            VALUES (%s, %s, %s, %s , %s, %s, 0 )
+                            """, (self.ol_engine.active_scenario_id,vessel_id[0], pile_id[0], mivol, mavol,11.111))
+                        self.ol_engine.conn.commit()
+                    except Exception as e:
+                        self.ol_engine.conn.rollback()
+                        print(f"Error inserting volume data: {str(e)}")
+
+    def load_Q(self):
+        sheet_Q = self.workbook_datafile["Q"]
+        self.logger.info("Loading Q data into T_QltCharacteristics")
+
+        try:
+            for i in range(1, 1+self.config_data['NumberOfQCs']):
+                QualityCode = f"QLT{i:03d}"
+                QualityName = sheet_Q.cell(3, 4 + i).value
+
+
+                # Insert record into database
+                try:
+                    self.ol_engine.cur.execute("""
+                        INSERT INTO T_QltCharacteristics (_ScenarioID, QualityCode, QualityName)
+                        VALUES (%s, %s, %s)
+                        """, (self.ol_engine.active_scenario_id, QualityCode, QualityName))
+
+                    # Commit after each successful insert
+                    self.ol_engine.conn.commit()
+
+
+                except Exception as e:
+                    self.ol_engine.conn.rollback()
+                    print(f"Error inserting record {i} ({QualityCode}): {str(e)}")
+                    # Continue with next record even if one fails
+                    continue
+
+        except Exception as e:
+            print(f"Critical error in load_Q: {str(e)}")
+            raise  # Re-raise the exception if it's a major error
+
+        for qi in range(1, 1+self.config_data['NumberOfQCs']):  # First 99 quality characteristics
+            for vi in range(1, self.config_data['NumberOfVessels'] + 1):
+                try:
+                    # Get vessel and quality info from Excel
+                    vesname = sheet_Q.cell(3 + vi, 1).value
+                    qname = sheet_Q.cell(3, 4 + qi).value
+                    qmin = sheet_Q.cell(3 + vi, 4 + qi).value
+                    qmax = sheet_Q.cell(3 + vi, 107 + qi).value  # Assuming max values start at column 107
+
+                    # Skip if no values
+                    if qmin is None and qmax is None:
+                        continue
+
+                    # Get VesselId
+                    self.ol_engine.cur.execute("""
+                        SELECT Id FROM T_Vessels 
+                        WHERE VesselName = %s AND _ScenarioID  = %s
+                        """, (vesname, self.ol_engine.active_scenario_id))
+                    vessel_id = self.ol_engine.cur.fetchone()
+                    if not vessel_id:
+                        print(f"Vessel not found: {vesname}")
+                        continue
+                    vessel_id = vessel_id[0]
+
+                    # Get QualityCharacteristicId
+                    self.ol_engine.cur.execute("""
+                        SELECT Id FROM T_QltCharacteristics 
+                        WHERE QualityName = %s AND _ScenarioID = %s
+                        """, (qname, self.ol_engine.active_scenario_id))
+                    qlt_id = self.ol_engine.cur.fetchone()
+                    if not qlt_id:
+                        print(f"Quality characteristic not found: {qname}")
+                        continue
+                    qlt_id = qlt_id[0]
+
+                    # Insert restriction
+                    self.ol_engine.cur.execute("""
+                        INSERT INTO T_QualityRestrictions 
+                        (VesselId,_ScenarioID, QltCharacteristicId, ValueMin, ValueMax)
+                        VALUES (%s, %s,%s, %s, %s)
+                        """, (vessel_id,self.ol_engine.active_scenario_id, qlt_id, qmin, qmax))
+                    self.ol_engine.conn.commit()
+
+                except Exception as e:
+                    self.ol_engine.conn.rollback()
+                    print(f"Error processing vessel {vi} quality {qi}: {str(e)}")
+                    continue
+
+
+        print(f"Successfully  Quality")
+
+
+
+
+
+    def load_cargo_data(self):
+        sheet_cargo = self.workbook_datafile["Cargo"]
+
+        # Проверка существующих записей
+        self.ol_engine.cur.execute("""
+            SELECT COUNT(*) FROM T_Piles 
+            WHERE _ScenarioID = %s
+        """, (self.ol_engine.active_scenario_id,))
+        count = self.ol_engine.cur.fetchone()[0]
+
+        if count > 0:
+            self.logger.info("Found %d records with _ScenarioID = %d. Deleting...",
+                             count, self.ol_engine.active_scenario_id)
+            self.ol_engine.cur.execute("""
+                DELETE FROM T_Piles 
+                WHERE _ScenarioID = %s
+            """, (self.ol_engine.active_scenario_id,))
+            self.logger.info("Deleted %d records with _ScenarioID = %d",
+                             count, self.ol_engine.active_scenario_id)
+
+        self.logger.info("Loading Cargo data into T_Piles")
+
+        # Количество штабелей (предположим, что оно задано в конфиге)
+        number_of_piles = self.config_data.get('NumberOfPiles', 30)
+
+        # Чтение данных из Excel
+        for pile_number in range(1, number_of_piles + 1):
+            pile_code = 'Pile'+str(self.get_cell_value(sheet_cargo, 2, 3 + pile_number, ""))
+
+            pile_name = str(self.get_cell_value(sheet_cargo, 1, 3 + pile_number, ""))
+
+            min_stock = round(float(self.get_cell_value(sheet_cargo, 3, 3 + pile_number, 0)), 2)
+            stock_yard = round(float(self.get_cell_value(sheet_cargo, 4, 3 + pile_number, 0)), 2)
+            on_board = round(float(self.get_cell_value(sheet_cargo, 5, 3 + pile_number, 0)), 2)
+
+            confirmed_volume = round(float(self.get_cell_value(sheet_cargo, 6, 3 + pile_number, 0)), 2)
+            confirmed_days = round(float(self.get_cell_value(sheet_cargo, 7, 3 + pile_number, 0)), 2)
+
+            dvzhd_volume = round(float(self.get_cell_value(sheet_cargo, 8, 3 + pile_number, 0)), 2)
+            dvzhd_days = round(float(self.get_cell_value(sheet_cargo, 9, 3 + pile_number, 0)), 2)
+
+            faraway_volume = round(float(self.get_cell_value(sheet_cargo, 10, 3 + pile_number, 0)), 2)
+            faraway_days = round(float(self.get_cell_value(sheet_cargo, 11, 3 + pile_number, 0)), 2)
+
+            planned_volume = round(float(self.get_cell_value(sheet_cargo, 12, 3 + pile_number, 0)), 2)
+            planned_days = round(float(self.get_cell_value(sheet_cargo, 13, 3 + pile_number, 0)), 2)
+
+            longrun_volume = round(float(self.get_cell_value(sheet_cargo, 14, 3 + pile_number, 0)), 2)
+            longrun_days = round(float(self.get_cell_value(sheet_cargo, 15, 3 + pile_number, 0)), 2)
+
+            # Вставка данных в таблицу
+            insert_query = """
+            INSERT INTO T_Piles (
+                _ScenarioID, PileCode, PileName, 
+                MinStock, StockYard, OnBoard,
+                ConfirmedVolume, ConfirmedDays,
+                DVZHDVolume, DVZHDDays,
+                FarawayVolume, FarawayDays,
+                PlannedVolume, PlannedDays,
+                LongRunVolume, LongRunDays
+            ) VALUES (
+                %s, %s, %s, 
+                %s, %s, %s,
+                %s, %s,
+                %s, %s,
+                %s, %s,
+                %s, %s,
+                %s, %s
+            )
+            """
+
+            self.ol_engine.cur.execute(insert_query, (
+                self.ol_engine.active_scenario_id,
+                pile_code,
+                pile_name,
+                min_stock,
+                stock_yard,
+                on_board,
+                confirmed_volume,
+                confirmed_days,
+                dvzhd_volume,
+                dvzhd_days,
+                faraway_volume,
+                faraway_days,
+                planned_volume,
+                planned_days,
+                longrun_volume,
+                longrun_days
+            ))
+
+        self.ol_engine.conn.commit()
+        self.logger.info("Successfully loaded %d piles into T_Piles", number_of_piles)
 
     def load_vessels_from_xls_to_db(self):
         sheet_vessels = self.workbook_datafile["Vessels"]
@@ -253,25 +500,56 @@ class LoaderSourceDataToBD():
             )
         proclist = self.ol_engine.cur.fetchall()
         return proclist
+
     def delete_all_procedures(self):
-        self.ol_engine.cur.execute(
-            f"SELECT proname AS procedure_name "
-            f"FROM pg_proc "
-            f"WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
-            f"ORDER BY procedure_name;"
-        )
-        proclist = self.ol_engine.cur.fetchall()
-        proc_list = [item[0] for item in proclist]
-        self.logger.info(f"Find procedures in {proc_list}")
-        if len(proc_list)==0:
-            proc_list=['public.eosms_run_all_sp(int4)',
-                   'public.eotemp_activevessel_sp(int4)',
-                   'public.eo_e_timeperioddefinitions_sp(int64)'
-                   ]
-        for i in proc_list:
-            sql = f"DROP FUNCTION IF EXISTS {i} "
-            self.ol_engine.cur.execute(sql)
-        self.ol_engine.conn.commit()
+        """Delete all stored procedures and functions in the public schema"""
+        try:
+            # Get list of all functions/procedures with their full signatures
+            self.ol_engine.cur.execute("""
+                SELECT 
+                    CASE WHEN p.prokind = 'p' THEN 'PROCEDURE' ELSE 'FUNCTION' END as obj_type,
+                    'public.' || p.proname || '(' || 
+                    COALESCE(pg_get_function_identity_arguments(p.oid), '') || ')' as obj_signature
+                FROM pg_proc p
+                JOIN pg_namespace n ON p.pronamespace = n.oid
+                WHERE n.nspname = 'public'
+                ORDER BY p.proname;
+            """)
+
+            objects = self.ol_engine.cur.fetchall()
+            self.logger.info(f"Found {len(objects)} functions/procedures in public schema")
+
+            # If nothing found, use default list (consider removing this in production)
+            if not objects:
+                default_objects = [
+                    ('FUNCTION', 'public.eosms_run_all_sp(int4)'),
+                    ('FUNCTION', 'public.eotemp_activevessel_sp(int4)'),
+                    ('FUNCTION', 'public.eo_e_timeperioddefinitions_sp(int8)')
+                ]
+                objects = default_objects
+                self.logger.warning("No procedures found, using default list")
+
+            # Delete each object
+            success_count = 0
+            for obj_type, signature in objects:
+                try:
+                    drop_sql = f"DROP {obj_type} IF EXISTS {signature} CASCADE"
+                    self.logger.debug(f"Executing: {drop_sql}")
+                    self.ol_engine.cur.execute(drop_sql)
+                    success_count += 1
+                    self.logger.info(f"Successfully dropped: {signature}")
+                except Exception as proc_error:
+                    self.logger.error(f"Failed to drop {signature}: {str(proc_error)}")
+                    continue
+
+            self.ol_engine.conn.commit()
+            self.logger.info(
+                f"Procedure deletion completed. Successfully dropped {success_count} of {len(objects)} objects")
+
+        except Exception as main_error:
+            self.logger.error(f"Error in delete_all_procedures: {str(main_error)}")
+            self.ol_engine.conn.rollback()
+            raise
 
 
 

@@ -1,56 +1,55 @@
-CREATE OR REPLACE PROCEDURE EO_E_LocationDefinitions_sp(config_id INT)
+CREATE OR REPLACE PROCEDURE schama_eo_e_locationdefinitions_sp(ConfigId INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Удаляем записи для указанного ConfigId
-    DELETE FROM eo_e_locationdefinitions
-    WHERE _ScenarioID = config_id;
+    -- Удаляем старые данные для указанного ConfigId
+    DELETE FROM T_EO_E_LocationDefinitions
+    WHERE _ScenarioID = ConfigId;
 
-    -- Локации в "Sales"
-    INSERT INTO eo_e_locationdefinitions
-        (_ScenarioID, location, tag1, tag2, decisionswitch)
+    -- Locations in "Sales"
+    INSERT INTO T_EO_E_LocationDefinitions
+        (_ScenarioID, Location, Tag1, Tag2, DecisionSwitch)
     SELECT DISTINCT
         av._ScenarioID,
-        RTRIM(av.eo_vessel) || '|Loc|' || RTRIM(tpd.timeperiod),
+        RTRIM(av.EO_Vessel) || '|Loc|' || RTRIM(tpd.TimePeriod),
         'Sales',
-        av.eo_vessel,
+        av.EO_Vessel,
         'Set by Period'
     FROM
         T_EOtemp_ActiveVessel av
-    JOIN
-        eo_e_timeperioddefinitions tpd ON av._ScenarioID = tpd._ScenarioID
-    JOIN
-        configuration c ON av._ScenarioID = c.ID
+        JOIN T_EO_E_TimePeriodDefinitions tpd ON av._ScenarioID = tpd._ScenarioID
+        JOIN T_Configuration c ON av._ScenarioID = c._ScenarioID
     WHERE
-        av._ScenarioID = config_id
-        AND av.dayofstart <= tpd.periodindex
-        AND c.numberofdays + 2 - av.daystoload >= tpd.periodindex;
+        av._ScenarioID = ConfigId
+        AND av.DayOfStart <= tpd.PeriodIndex
+        AND c.NumberOfDays + 2 + c.NumberOfWeekPeriods*7 + c.NumberOf2WeekPeriods*14 - av.DaysToLoad >= tpd.PeriodIndex
+        AND tpd.PeriodIndex <= av.DayOfStart + av.MaxShiftDays;
 
-    -- Локации в "Ships"
-    INSERT INTO eo_e_locationdefinitions
-        (_ScenarioID, location, tag1, tag2, decisionswitch, attribute1)
+    -- Locations in "Ships"
+    INSERT INTO T_EO_E_LocationDefinitions
+        (_ScenarioID, Location, Tag1, Tag2, DecisionSwitch, Attribute1)
     SELECT
         av._ScenarioID,
-        RTRIM(av.eo_vessel) || '|Loc',
+        RTRIM(av.EO_Vessel) || '|Loc',
         'Ships',
-        av.eo_vessel,
+        av.EO_Vessel,
         'Set by Period',
-        RTRIM(av.eo_vessel) || '|Loc'
+        RTRIM(av.EO_Vessel) || '|Loc'
     FROM
         T_EOtemp_ActiveVessel av
     WHERE
-        av._ScenarioID = config_id;
+        av._ScenarioID = ConfigId;
 
-    -- Локации в "Incoming" и "Piles"
-    INSERT INTO eo_e_locationdefinitions
-        (_ScenarioID, location, tag1, decisionswitch)
+    -- Locations in "Incoming" and "Piles"
+    INSERT INTO T_EO_E_LocationDefinitions
+        (_ScenarioID, Location, Tag1, DecisionSwitch)
     VALUES
-        (config_id, 'Piles', 'Piles', 'Open');
+        (ConfigId, 'Piles', 'Piles', 'Open');
 
-    -- Локации в "Incoming" для Day items
-    INSERT INTO eo_e_locationdefinitions
-        (_ScenarioID, location, tag1, decisionswitch)
+    -- Locations in "Incoming" for Day items
+    INSERT INTO T_EO_E_LocationDefinitions
+        (_ScenarioID, Location, Tag1, DecisionSwitch)
     VALUES
-        (config_id, 'Days', 'Days', 'Open');
+        (ConfigId, 'Days', 'Days', 'Open');
 END;
 $$;
