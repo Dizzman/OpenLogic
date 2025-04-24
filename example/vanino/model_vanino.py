@@ -70,6 +70,8 @@ A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_I_InventoryActi
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_TransferActivity_Piles_to_Ships_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_FromShipmentDescription_Piles_to_Ships_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_ToShipmentDescription_Piles_to_Ships_sp.sql')
+A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_I_RatioDefinitions_Ships_sp.sql')
+A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_P_PurchaseActivityMTP_Incoming_sp.sql')
 
 #A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EOSMS_RunAllSP_sp.sql')
 
@@ -90,6 +92,8 @@ A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_I_InventoryActivity_S
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_TransferActivity_Piles_to_Ships_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_FromShipmentDescription_Piles_to_Ships_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_ToShipmentDescription_Piles_to_Ships_sp')
+A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_I_RatioDefinitions_Ships_sp')
+A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_P_PurchaseActivityMTP_Incoming_sp')
 
 
 logging.info("fff")

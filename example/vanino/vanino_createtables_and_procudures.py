@@ -116,6 +116,8 @@ class LoaderSourceDataToBD():
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_TransferActivity.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_FromShipmentDescription.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_ToShipmentDescription.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_I_RatioDefinitions.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_P_PurchaseActivityMTP.sql")
 
         except Exception as e:
             self.logger.fatal(f"Exit program ")
@@ -146,7 +148,7 @@ class LoaderSourceDataToBD():
                                             (_ScenarioID,PileId, QualityId, Value) 
                                             VALUES (%s, %s, %s,%s )
                                             """, (
-                self.ol_engine.active_scenario_id,  pi,q_id,  Value))
+                self.ol_engine.active_scenario_id,  pi,qi,  Value))
                 self.ol_engine.conn.commit()
 
     def load_Vol(self):
