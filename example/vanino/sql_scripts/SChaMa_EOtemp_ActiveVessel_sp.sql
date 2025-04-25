@@ -32,7 +32,7 @@ BEGIN
         COALESCE(v.Maxshift, c.Maxshiftdefault)
     FROM
         T_Vessels v
-    JOIN T_Configuration c ON c._ScenarioID = v._ScenarioID
+    JOIN T_Configuration c ON c.ID = v._ScenarioID
     WHERE
         v._ScenarioID = 1
         AND v.FIX = 0

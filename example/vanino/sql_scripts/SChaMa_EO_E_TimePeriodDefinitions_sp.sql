@@ -32,7 +32,7 @@ BEGIN
     -- Get configuration values
     SELECT NumberOfDays + 1, NumberOfDiscreteDays
     INTO v_MaxDays, v_DiscDays
-    FROM T_Configuration WHERE _ScenarioID = p_ConfigId;
+    FROM T_Configuration WHERE ID = p_ConfigId;
 
     -- Process daily periods
     WHILE v_DayNumber <= v_MaxDays LOOP
@@ -50,7 +50,7 @@ BEGIN
     -- Get next period configuration
     SELECT NumberOfDays + 1 + NumberOfWeekPeriods*7
     INTO v_MaxDays
-    FROM T_Configuration WHERE _ScenarioID = p_ConfigId;
+    FROM T_Configuration WHERE ID = p_ConfigId;
 
     v_PeriodType := 'W';
     v_DayInWeek := 1;
@@ -75,7 +75,7 @@ BEGIN
     -- Get next period configuration
     SELECT NumberOfDays + 1 + NumberOfWeekPeriods*7 + NumberOf2WeekPeriods*14
     INTO v_MaxDays
-    FROM T_Configuration WHERE _ScenarioID = p_ConfigId;
+    FROM T_Configuration WHERE ID = p_ConfigId;
 
     v_PeriodType := 'H';
     v_DayIn2Week := 1;
@@ -103,7 +103,7 @@ BEGIN
     INSERT INTO T_EO_E_TimePeriodDefinitions
         (_ScenarioID, TimePeriod, Tag1, Tag2, PeriodIndex)
     SELECT
-        c._ScenarioID,
+        c.ID,
         CASE WHEN LENGTH(CAST(d.DayNumber AS TEXT)) = 1
              THEN '0' ELSE '' END || CAST(d.DayNumber AS TEXT),
         d.Tag1,
@@ -114,6 +114,6 @@ BEGIN
         T_Configuration c
     CROSS JOIN Days d
     WHERE
-        c._ScenarioID = p_ConfigId;
+        c.ID = p_ConfigId;
 END;
 $$;

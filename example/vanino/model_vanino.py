@@ -73,7 +73,7 @@ A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_ItI_ToShipmentD
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_I_RatioDefinitions_Ships_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_P_PurchaseActivityMTP_Incoming_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_S_SalesActivityMTP_Sales_sp.sql')
-A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_A_AttributeDefinitions_sp.sql')
+A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_A_AttributeDefinitions_Order_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_A_RatioConstraints_sp.sql')
 A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EO_PostProc_E_TimePeriodDefinitions_sp.sql')
 #A.add_sql_procedure_from_file(file_path='./sql_scripts/SChaMa_EOSMS_RunAllSP_sp.sql')
@@ -98,7 +98,7 @@ A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_ItI_ToShipmentDescrip
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_I_RatioDefinitions_Ships_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_P_PurchaseActivityMTP_Incoming_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_S_SalesActivityMTP_Sales_sp')
-A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_AttributeDefinitions_sp')
+A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_AttributeDefinitions_Order_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_RatioConstraints_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_PostProc_E_TimePeriodDefinitions_sp')
 
