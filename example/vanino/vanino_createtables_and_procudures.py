@@ -412,7 +412,7 @@ class LoaderSourceDataToBD():
             volume_max = round(float(self.get_cell_value(sheet_vessels, row_number+1, 10, 0)), 4) if fix_value == 0 else None
             contract = str(self.get_cell_value(sheet_vessels, row_number+1, 11, ''))
             basis = str(self.get_cell_value(sheet_vessels, row_number+1, 2, ''))
-            max_shift_days = int(self.get_cell_value(sheet_vessels, row_number+1, 13, 0))
+            max_shift_days = self.get_cell_value(sheet_vessels, row_number+1, 13)
 
             # Вставка данных в таблицу PostgreSQL
             insert_query = """

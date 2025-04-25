@@ -1,42 +1,37 @@
 CREATE OR REPLACE FUNCTION public.get_part_from_to_code(
-    code varchar(2048),
-    from_pos integer,
-    to_pos integer
+    p_code text,
+    p_from integer,
+    p_to integer
 )
-RETURNS varchar(1024)
-LANGUAGE plpgsql
-AS $$
+RETURNS text AS $$
 DECLARE
     i integer := 1;
-    result varchar(1024) := '';
-    pos integer;
-    part_length integer;
+    result text := '';
+    parts text[];
 BEGIN
-    WHILE i <= to_pos LOOP
-        IF code = '' THEN
-            RETURN result;
+    -- Если входная строка пустая или NULL, возвращаем пустую строку
+    IF p_code IS NULL OR p_code = '' THEN
+        RETURN '';
+    END IF;
+
+    -- Разбиваем строку на части по разделителю '|'
+    parts := string_to_array(p_code, '|');
+
+    -- Проверяем допустимость диапазона
+    IF p_from < 1 OR p_from > array_length(parts, 1) OR
+       p_to < p_from OR p_to > array_length(parts, 1) THEN
+        RETURN '';
+    END IF;
+
+    -- Собираем нужные части
+    FOR i IN p_from..p_to LOOP
+        IF result = '' THEN
+            result := parts[i];
+        ELSE
+            result := result || '|' || parts[i];
         END IF;
-
-        pos := position('|' IN code);
-
-        IF i >= from_pos THEN
-            IF pos != 0 THEN
-                part_length := pos - 1;
-            ELSE
-                part_length := length(code);
-            END IF;
-
-            result := result || substring(code FROM 1 FOR part_length);
-        END IF;
-
-        IF pos = 0 THEN
-            RETURN result;
-        END IF;
-
-        code := substring(code FROM pos + 1);
-        i := i + 1;
     END LOOP;
 
-    RETURN substring(result FROM 1 FOR length(result) - 1);
+    RETURN result;
 END;
-$$;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
