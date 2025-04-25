@@ -1,90 +1,127 @@
--- ==================================================================
--- Author:      SS
--- Create date: 30.10.2017
--- Description: Filling EO_P_PurchaseActivityMTP Obj_name=Incoming
--- Change #1 Author:     SS
--- Create date: 10.01.2018
--- Description: Filling EO_P_PurchaseActivityMTP Obj_name=Incoming with Day items
--- ================================================================
-CREATE OR REPLACE PROCEDURE schama_eo_p_purchaseactivitymtp_incoming_sp( configid INT)
+CREATE OR REPLACE PROCEDURE SChaMa_EO_P_PurchaseActivityMTP_Incoming_sp(
+    ConfigId INT
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Delete existing records for this config
+    DELETE FROM T_EO_P_PurchaseActivityMTP
+    WHERE _ScenarioID = ConfigId;
 
-    DELETE FROM t_eo_p_purchaseactivitymtp
-    WHERE _scenarioID = configid;
-
-    -- Piles in Purchase ActivityMTP "Incoming"
-    INSERT INTO t_eo_p_purchaseactivitymtp
-        (_scenarioID, objectname, timeperiod, location, itemdescription, minunitsadd, maxunitsadd)
+    -- Create temporary table for Piles in Purchase ActivityMTP "Incoming"
+    CREATE TEMPORARY TABLE Temp_PurMTP AS
     SELECT
-        pl._scenarioID,
-        'Incoming',
-        tp.timeperiod,
-        ld.location,
-        CONCAT(pl.pilecode, '|', pl.pilename),
+        pl._ScenarioID,
+        'Incoming' AS ObjectName,
+        tp.TimePeriod,
+        ld.Location,
+        CONCAT(pl.PileCode, '|', pl.PileName) AS ItemDescription,
         CASE
-            WHEN CAST(tp.timeperiod as INT) <= pl.confirmeddays
-                THEN pl.confirmedvolume / pl.confirmeddays
-            WHEN CAST(tp.timeperiod as INT) > pl.confirmeddays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays
-                THEN pl.dvzhdvolume / pl.dvzhddays
-            WHEN CAST(tp.timeperiod as INT) > pl.dvzhddays + pl.confirmeddays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays + pl.farawaydays
-                THEN pl.farawayvolume / pl.farawaydays
-            WHEN CAST(tp.timeperiod as INT) > pl.dvzhddays + pl.confirmeddays + pl.farawaydays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays + pl.farawaydays + pl.planneddays
-                THEN pl.plannedvolume / pl.planneddays
-            ELSE pl.longrunvolume / pl.longrundays
-        END / 1000,
+            WHEN CAST(tp.TimePeriod AS INT) <= pl.ConfirmedDays THEN
+                pl.ConfirmedVolume / pl.ConfirmedDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.ConfirmedDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays THEN
+                pl.DVZHDVolume / pl.DVZHDDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays THEN
+                pl.FarawayVolume / pl.FarawayDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays + pl.PlannedDays THEN
+                pl.PlannedVolume / pl.PlannedDays
+            ELSE
+                pl.LongRunVolume / pl.LongRunDays
+        END / 1000 AS MinUnitsAdd,
         CASE
-            WHEN CAST(tp.timeperiod as INT) <= pl.confirmeddays
-                THEN pl.confirmedvolume / pl.confirmeddays
-            WHEN CAST(tp.timeperiod as INT) > pl.confirmeddays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays
-                THEN pl.dvzhdvolume / pl.dvzhddays
-            WHEN CAST(tp.timeperiod as INT) > pl.dvzhddays + pl.confirmeddays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays + pl.farawaydays
-                THEN pl.farawayvolume / pl.farawaydays
-            WHEN CAST(tp.timeperiod as INT) > pl.dvzhddays + pl.confirmeddays + pl.farawaydays AND CAST(tp.timeperiod as INT) <= pl.dvzhddays + pl.confirmeddays + pl.farawaydays + pl.planneddays
-                THEN pl.plannedvolume / pl.planneddays
-            ELSE pl.longrunvolume / pl.longrundays
-        END / 1000
-    FROM
-        t_piles pl
+            WHEN CAST(tp.TimePeriod AS INT) <= pl.ConfirmedDays THEN
+                pl.ConfirmedVolume / pl.ConfirmedDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.ConfirmedDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays THEN
+                pl.DVZHDVolume / pl.DVZHDDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays THEN
+                pl.FarawayVolume / pl.FarawayDays
+            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays
+                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays + pl.PlannedDays THEN
+                pl.PlannedVolume / pl.PlannedDays
+            ELSE
+                pl.LongRunVolume / pl.LongRunDays
+        END / 1000 AS MaxUnitsAdd
+    FROM T_Piles pl
     CROSS JOIN (
-        SELECT location
-        FROM t_eo_e_locationdefinitions
-        WHERE tag1 = 'Piles'
-        AND _scenarioID = configid
+        SELECT Location
+        FROM T_EO_E_LocationDefinitions
+        WHERE Tag1 = 'Piles'
+              AND _ScenarioID = ConfigId
         LIMIT 1
     ) ld
     CROSS JOIN (
-        SELECT timeperiod
-        FROM t_eo_e_timeperioddefinitions
-        WHERE _scenarioID = configid
+        SELECT TimePeriod
+        FROM T_EO_E_TimePeriodDefinitions
+        WHERE _ScenarioID = ConfigId
     ) tp
-    WHERE
-        pl._scenarioID = configid;
+    WHERE pl._ScenarioID = ConfigId;
 
-    -- Day items in Purchase ActivityMTP "Incoming"
-    INSERT INTO t_eo_p_purchaseactivitymtp
-        (_scenarioID, objectname, timeperiod, location, itemdescription, minunitsadd, maxunitsadd)
+    -- Insert telescoped periods into final table
+    INSERT INTO T_EO_P_PurchaseActivityMTP(
+        _ScenarioID,
+        ObjectName,
+        TimePeriod,
+        Location,
+        ItemDescription,
+        MinUnitsAdd,
+        MaxUnitsAdd
+    )
     SELECT
-        pa._scenarioID,
-        'Incoming',
-        tp.timeperiod,
-        pa.location,
-        pa.itemdescription,
-        0,
-        CASE
-            WHEN get_part_from_to_code(pa.itemdescription, 2, 2) = tp.timeperiod THEN 2
-            ELSE 0
-        END
-    FROM
-        t_eo_p_purchaseactivity pa
-    CROSS JOIN (
-        SELECT timeperiod
-        FROM t_eo_e_timeperioddefinitions
-        WHERE _scenarioID = configid
-    ) tp
-    WHERE
-        pa._scenarioID = configid AND pa.location = 'Days';
+        pur._ScenarioID,
+        pur.ObjectName,
+        tpd.Tag2,
+        pur.Location,
+        pur.ItemDescription,
+        SUM(pur.MinUnitsAdd),
+        SUM(pur.MaxUnitsAdd)
+    FROM Temp_PurMTP pur
+    JOIN T_EO_E_TimePeriodDefinitions tpd
+        ON tpd.TimePeriod = pur.TimePeriod
+           AND tpd._ScenarioID = ConfigId
+    GROUP BY
+        pur._ScenarioID,
+        pur.ObjectName,
+        tpd.Tag2,
+        pur.Location,
+        pur.ItemDescription;
 
+    -- Insert day items into Purchase ActivityMTP "Incoming"
+    INSERT INTO T_EO_P_PurchaseActivityMTP(
+        _ScenarioID,
+        ObjectName,
+        TimePeriod,
+        Location,
+        ItemDescription,
+        MinUnitsAdd,
+        MaxUnitsAdd
+    )
+    SELECT
+        pa._ScenarioID,
+        'Incoming',
+        tp.Tag2,
+        pa.Location,
+        pa.ItemDescription,
+        0,
+        2
+    FROM T_EO_P_PurchaseActivity pa
+    JOIN T_EO_E_TimePeriodDefinitions tpd
+        ON tpd.TimePeriod = get_part_from_to_code(pa.ItemDescription,2,2)
+           AND pa._ScenarioID = tpd._ScenarioID
+    CROSS JOIN (
+        SELECT DISTINCT Tag2
+        FROM T_EO_E_TimePeriodDefinitions
+        WHERE _ScenarioID = ConfigId
+    ) tp
+    WHERE pa._ScenarioID = ConfigId
+          AND pa.Location = 'Days'
+          AND tpd.Tag2 = tp.Tag2;
+
+    -- Clean up temporary table
+    DROP TABLE IF EXISTS Temp_PurMTP;
 END;
 $$;

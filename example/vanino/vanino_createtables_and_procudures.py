@@ -118,12 +118,17 @@ class LoaderSourceDataToBD():
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_ItI_ToShipmentDescription.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_I_RatioDefinitions.sql")
             self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_P_PurchaseActivityMTP.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_S_SalesActivityMTP.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_A_SummaryDefinitions.sql")
+            self.ol_engine.execute_sql_file("./sql_scripts/EO_Tables/EO_A_RatioConstraints.sql")
+
 
         except Exception as e:
             self.logger.fatal(f"Exit program ")
             exit(1)
 
     def load_PilesQ(self):
+        self.logger.info("loading PilesQ")
         PilesQ = self.workbook_datafile["quality"]
         for qi in range(1, 1+self.config_data['NumberOfQCs']):
             for pi in range(1, self.config_data.get('NumberOfPiles') + 1):
@@ -136,7 +141,7 @@ class LoaderSourceDataToBD():
 
                                     """, (PileName, self.ol_engine.active_scenario_id))
                 pile_id = self.ol_engine.cur.fetchone()
-                print(pile_id,PileName)
+                #print(pile_id,PileName)
                 self.ol_engine.cur.execute("""
                                                     SELECT Id FROM T_QltCharacteristics 
                                                     WHERE QualityName = %s AND _ScenarioID = %s

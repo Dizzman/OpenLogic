@@ -1,3 +1,10 @@
+
+-- ==================================================================
+-- Author:		NY
+-- Create date: 30.11.2020
+-- Project:		SChaMa - Vanino
+-- Description:	Filling EO_I_RatioDefinitions Obj_name=Ships
+-- ================================================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_I_RatioDefinitions_Ships_sp(ConfigId INT)
 LANGUAGE plpgsql
 AS $$
