@@ -86,7 +86,7 @@ class LoaderSourceDataToBD():
         logging.info("Create DataTable: Configuration")
         self.ol_engine.cur.execute("""
                 CREATE TABLE IF NOT EXISTS T_Configuration (
-                    _ScenarioID INT,
+                    ID SERIAL PRIMARY KEY,
                     NumberOfPiles INT,
                     NumberOfVessels INT,
                     NumberOfDiscreteDays INT,
@@ -475,7 +475,7 @@ class LoaderSourceDataToBD():
         # Check for records with _ScenarioID = 1
         self.ol_engine.cur.execute("""
                 SELECT COUNT(*) FROM T_Configuration 
-                WHERE _ScenarioID = %s
+                WHERE ID = %s
                 """, (self.ol_engine.active_scenario_id ,))
         count = self.ol_engine.cur.fetchone()[0]  # Get the count of records
 
@@ -485,7 +485,7 @@ class LoaderSourceDataToBD():
             # Delete records where _ScenarioID = 1
             self.ol_engine.cur.execute("""
                     DELETE FROM T_Configuration 
-                    WHERE _ScenarioID = %s
+                    WHERE ID = %s
                     """, (self.ol_engine.active_scenario_id,))
             self.logger.info(f"Records with _ScenarioID = %d deleted.", self.ol_engine.active_scenario_id)
         else:
@@ -494,11 +494,11 @@ class LoaderSourceDataToBD():
 
         # Insert data with explicit enumeration
         self.ol_engine.cur.execute("""
-                INSERT INTO T_Configuration (_ScenarioID,NumberOfPiles, NumberOfVessels, NumberOfDiscreteDays, NumberOfQCs, 
+                INSERT INTO T_Configuration (NumberOfPiles, NumberOfVessels, NumberOfDiscreteDays, NumberOfQCs, 
                                            NumberOfDays, ConfirmedDays, DVZHDDays, FarawayDays, PlannedDays,NumberOfWeekPeriods,NumberOf2WeekPeriods,Maxshiftdefault) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
-            self.ol_engine.active_scenario_id,
+
             self.config_data['NumberOfPiles'],
             self.config_data['NumberOfVessels'],
             self.config_data['NumberOfDiscreteDays'],

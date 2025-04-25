@@ -1,6 +1,6 @@
 -- create_configuration.sql
 CREATE TABLE IF NOT EXISTS T_Configuration (
-    _ScenarioID INT,
+    ID SERIAL PRIMARY KEY,
     NumberOfPiles INT,
     NumberOfVessels INT,
     NumberOfDiscreteDays INT,

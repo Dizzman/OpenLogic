@@ -82,6 +82,7 @@ print(A.getall_proc())
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EOtemp_ActiveVessel_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_E_TimePeriodDefinitions_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_E_LocationDefinitions_sp')
+
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_AttributeDefinitions_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_C_ConstraintSetDefinitions_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_E_LocationDefinitionsMTP_sp')
