@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS T_EO_S_SalesActivity (
-    _ScenarioID INTNOT NULL,
+    _ScenarioID INT NOT NULL,
     ObjectName VARCHAR(255) NOT NULL,
     _VariableControlledFacilityLocationAttribute VARCHAR(255),
     _Location VARCHAR(255),

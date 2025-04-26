@@ -40,7 +40,7 @@ BEGIN
         RTRIM(av.EO_Vessel) || '|Loc',
         'Ships',
         av.EO_Vessel,
-        'Set by Period',
+        'Set by Period', -- Для сложных сценариев: используйте Set by Period + MTP-таблицы для тонкой настройки по периодам.
         RTRIM(av.EO_Vessel) || '|Loc'
     FROM
         T_EOtemp_ActiveVessel av
