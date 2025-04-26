@@ -42,8 +42,8 @@ BEGIN
     FROM
         t_eo_i_inventoryactivity iap
         CROSS JOIN t_eo_i_inventoryactivity ias
-        JOIN T_volumes vl ON vl.vesselid = CAST(ias.tag1 AS INTEGER)
-                           AND vl.pileid = CAST(iap.tag1 AS INTEGER)
+        JOIN T_volumes vl ON vl.vesselid = CAST(ias.tag1 AS INT)
+                           AND vl.pileid = CAST(iap.tag1 AS INT)
     WHERE
         iap._ScenarioID = configId
         AND iap.objectname = 'Piles'

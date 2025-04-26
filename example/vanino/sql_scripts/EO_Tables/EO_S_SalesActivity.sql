@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS T_EO_S_SalesActivity (
-    _ScenarioID INTEGER NOT NULL,
+    _ScenarioID INTNOT NULL,
     ObjectName VARCHAR(255) NOT NULL,
     _VariableControlledFacilityLocationAttribute VARCHAR(255),
     _Location VARCHAR(255),
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS T_EO_S_SalesActivity (
     _SourceLimit FLOAT,
     _SourcePenalty FLOAT,
     _MaxSingleSourceExceptions FLOAT,
-    _DiscountApproximationSteps INTEGER,
+    _DiscountApproximationSteps INT,
     _UseUnitCostDriverDefaultAccounts VARCHAR(255),
     _ObjectActive VARCHAR(255),
     _UseDiscountCurves VARCHAR(255),

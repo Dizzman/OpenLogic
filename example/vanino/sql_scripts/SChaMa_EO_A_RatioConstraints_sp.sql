@@ -5,7 +5,7 @@
 -- Описание:    Заполнение EO_A_RatioConstraints соотношениями порядка судов в телескопе
 -- =============================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_A_RatioConstraints_sp(
-    ConfigId INTEGER
+    ConfigId INT
 )
 LANGUAGE plpgsql
 AS $$

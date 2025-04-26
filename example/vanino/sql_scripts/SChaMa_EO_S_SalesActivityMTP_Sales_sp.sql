@@ -5,7 +5,7 @@
 -- Description: Filling EO_S_SalesActivityMTP Obj_name=Sales
 -- ================================================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_S_SalesActivityMTP_Sales_sp(
-    ConfigId INTEGER
+    ConfigId INT
 )
 LANGUAGE plpgsql
 AS $$
@@ -42,7 +42,7 @@ BEGIN
                                        AND sa.Location = ld.Location
         JOIN T_EO_E_TimePeriodDefinitions AS TPD_st ON TPD_st.TimePeriod = get_part_from_to_code(sa.Location, 6, 6)
                                                  AND sa._ScenarioID = TPD_st._ScenarioID
-        JOIN T_EO_E_TimePeriodDefinitions AS TPD_fin ON TPD_fin.PeriodIndex = CAST(get_part_from_to_code(sa.Location, 6, 6) AS INTEGER) + av.DaysToLoad - 1
+        JOIN T_EO_E_TimePeriodDefinitions AS TPD_fin ON TPD_fin.PeriodIndex = CAST(get_part_from_to_code(sa.Location, 6, 6) AS INT) + av.DaysToLoad - 1
                                                    AND sa._ScenarioID = TPD_fin._ScenarioID
         CROSS JOIN (
             SELECT DISTINCT Tag1, Tag2

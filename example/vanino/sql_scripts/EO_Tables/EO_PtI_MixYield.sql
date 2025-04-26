@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS T_EO_PtI_MixYield (
-    _ScenarioID INTEGER NOT NULL,
+    _ScenarioID INT NOT NULL,
     ObjectName VARCHAR(120) NOT NULL,
     FromObjectName VARCHAR(255),
     ToObjectName VARCHAR(255),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS T_EO_PtI_MixYield (
     TransferPricePerUnit FLOAT,
     MinUnitsPerPeriod FLOAT,
     MaxUnitsPerPeriod FLOAT,
-    TransitTime INTEGER,
+    TransitTime INT,
     TotalSolutionUnits FLOAT,
     MaxOppValuePerUnit FLOAT,
     TotalCost FLOAT,

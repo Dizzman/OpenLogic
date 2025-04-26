@@ -100,7 +100,7 @@ A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_P_PurchaseActivityMTP
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_S_SalesActivityMTP_Sales_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_AttributeDefinitions_Order_sp')
 A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_A_RatioConstraints_sp')
-A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_PostProc_E_TimePeriodDefinitions_sp')
+#A.call_sql_procedure_for_active_scenario('public.SChaMa_EO_PostProc_E_TimePeriodDefinitions_sp')
 
 
 

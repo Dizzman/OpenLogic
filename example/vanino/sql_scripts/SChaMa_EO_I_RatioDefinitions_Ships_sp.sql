@@ -38,8 +38,8 @@ BEGIN
         T_EO_I_InventoryActivity ia
         JOIN T_EO_S_SalesActivity sa ON sa._ScenarioID = ia._ScenarioID
                                       AND sa.ItemDescription = ia.Material
-        JOIN T_QualityRestrictions qr ON qr.VesselId = CAST(sa.Tag1 AS INTEGER)
-                                       AND qr.QltCharacteristicId = CAST(sa.Tag2 AS INTEGER)
+        JOIN T_QualityRestrictions qr ON qr.VesselId = CAST(sa.Tag1 AS INT)
+                                       AND qr.QltCharacteristicId = CAST(sa.Tag2 AS INT)
     WHERE
         ia._ScenarioID = ConfigId
         AND ia.ObjectName = 'Ships'

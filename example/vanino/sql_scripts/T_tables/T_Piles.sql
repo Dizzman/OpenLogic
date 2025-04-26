@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS T_Piles (
     Id SERIAL PRIMARY KEY,
-    _ScenarioID INTEGER NOT NULL,
+    _ScenarioID INT NOT NULL,
     PileCode VARCHAR(255),
     PileName VARCHAR(255),
     MinStock FLOAT,

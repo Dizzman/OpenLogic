@@ -4,7 +4,7 @@
 -- Project:		SChaMa - Vanino
 -- Description:	Filling EOtemp_ActiveVessel with Vessels having FIX = 0
 -- =============================================
-CREATE OR REPLACE PROCEDURE SChaMa_EOtemp_ActiveVessel_sp(p_ConfigId INTEGER)
+CREATE OR REPLACE PROCEDURE SChaMa_EOtemp_ActiveVessel_sp(p_ConfigId INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN

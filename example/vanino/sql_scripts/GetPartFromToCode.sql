@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION public.get_part_from_to_code(
     p_code text,
-    p_from integer,
-    p_to integer
+    p_from int,
+    p_to int
 )
 RETURNS text AS $$
 DECLARE
-    i integer := 1;
+    i int := 1;
     result text := '';
     parts text[];
 BEGIN

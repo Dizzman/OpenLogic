@@ -5,7 +5,7 @@
 -- Description: Filling EO_ItI_ToShipmentDescription Obj_name=Piles_to_Ships
 -- ================================================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_ItI_ToShipmentDescription_Piles_to_Ships_sp(
-    ConfigId INTEGER
+    ConfigId INT
 )
 LANGUAGE plpgsql
 AS $$

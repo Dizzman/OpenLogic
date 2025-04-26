@@ -84,7 +84,7 @@ BEGIN
                                          AND pa.ObjectName = 'Incoming'
                                          AND get_part_from_to_code(pa.ItemDescription, 1, 1) = 'Day'
     WHERE
-        av._ScenarioID = ConfigId
+        av._ScenarioID = ConfigId -- продаем только те дни, которые возможны по графикам на рейде,  с учетом количества дней отгрукзи DaysToLoad
         AND CAST(get_part_from_to_code(pa.ItemDescription, 2, 2) AS INT) >= CAST(get_part_from_to_code(ld.Location, 6, 6) AS INT)
         AND CAST(get_part_from_to_code(pa.ItemDescription, 2, 2) AS INT) <
             CAST(get_part_from_to_code(ld.Location, 6, 6) AS INT) + av.DaysToLoad;

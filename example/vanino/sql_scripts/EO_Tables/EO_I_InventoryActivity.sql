@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS T_EO_I_InventoryActivity (
 
-    _ScenarioID INTEGER NOT NULL,
+    _ScenarioID INT NOT NULL,
     ObjectName VARCHAR(255) NOT NULL,
     _VariableControlledFacilityLocationAttribute VARCHAR(255),
     _Location VARCHAR(255),

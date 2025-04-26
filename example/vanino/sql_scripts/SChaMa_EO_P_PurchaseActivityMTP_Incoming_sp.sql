@@ -31,21 +31,7 @@ BEGIN
             ELSE
                 pl.LongRunVolume / pl.LongRunDays
         END / 1000 AS MinUnitsAdd,
-        CASE
-            WHEN CAST(tp.TimePeriod AS INT) <= pl.ConfirmedDays THEN
-                pl.ConfirmedVolume / pl.ConfirmedDays
-            WHEN CAST(tp.TimePeriod AS INT) > pl.ConfirmedDays
-                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays THEN
-                pl.DVZHDVolume / pl.DVZHDDays
-            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays
-                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays THEN
-                pl.FarawayVolume / pl.FarawayDays
-            WHEN CAST(tp.TimePeriod AS INT) > pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays
-                 AND CAST(tp.TimePeriod AS INT) <= pl.DVZHDDays + pl.ConfirmedDays + pl.FarawayDays + pl.PlannedDays THEN
-                pl.PlannedVolume / pl.PlannedDays
-            ELSE
-                pl.LongRunVolume / pl.LongRunDays
-        END / 1000 AS MaxUnitsAdd
+        MinUnitsAdd AS MaxUnitsAdd
     FROM T_Piles pl
     CROSS JOIN (
         SELECT Location
@@ -107,7 +93,7 @@ BEGIN
         pa.Location,
         pa.ItemDescription,
         0,
-        2
+        2 -- Причалы
     FROM T_EO_P_PurchaseActivity pa
     JOIN T_EO_E_TimePeriodDefinitions tpd
         ON tpd.TimePeriod = get_part_from_to_code(pa.ItemDescription,2,2)

@@ -4,7 +4,7 @@
 -- Проект:      SChaMa - Ванино
 -- Описание:    Заполнение EO_A_SummaryDefinitions связями Totaller(Day)-Vessel|Day
 -- =============================================
-CREATE OR REPLACE  PROCEDURE dbo.SChaMa_EO_A_SummaryDefinitions_sp(ConfigId INTEGER
+CREATE OR REPLACE  PROCEDURE dbo.SChaMa_EO_A_SummaryDefinitions_sp(ConfigId INT
 )
 
 $$

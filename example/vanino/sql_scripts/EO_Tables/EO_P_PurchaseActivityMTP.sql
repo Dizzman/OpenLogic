@@ -1,5 +1,5 @@
 CREATE TABLE t_eo_p_purchaseactivitymtp (
-    _ScenarioID integer NOT NULL,
+    _ScenarioID INT NOT NULL,
     objectname varchar(255) NOT NULL,
     _variablecontrolledfacilitylocationattribute varchar(255) NULL,
     _location varchar(255) NULL,
@@ -14,7 +14,7 @@ CREATE TABLE t_eo_p_purchaseactivitymtp (
     _analysisflag varchar(255) NULL,
     _purchaseclass varchar(255) NULL,
     _useunitcostdriverdefaultaccounts varchar(255) NULL,
-    _discountapproximationsteps integer NULL,
+    _discountapproximationsteps int NULL,
     _objectactive varchar(255) NULL,
     _usediscountcurves varchar(255) NULL,
     _applydiscountcurvesglobally varchar(255) NULL,

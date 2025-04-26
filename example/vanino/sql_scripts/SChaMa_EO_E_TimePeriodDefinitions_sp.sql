@@ -5,26 +5,26 @@
 -- Description:    Filling EO_E_TimePeriodDefinitions with 2-digit day numbers
 -- =============================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_E_TimePeriodDefinitions_sp(
-    p_ConfigId INTEGER
+    p_ConfigId INT
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_MaxDays INTEGER;
-    v_DiscDays INTEGER;
-    v_DayNumber INTEGER := 1;
+    v_MaxDays INT;
+    v_DiscDays INT;
+    v_DayNumber INT := 1;
     v_PeriodType TEXT;
-    v_DayInWeek INTEGER;
-    v_NewWeek INTEGER;
-    v_WeekNumber INTEGER := 1;
-    v_PeriodNumber INTEGER;
-    v_DayIn2Week INTEGER;
-    v_New2Week INTEGER;
-    v_2WeekNumber INTEGER := 1;
+    v_DayInWeek INT;
+    v_NewWeek INT;
+    v_WeekNumber INT := 1;
+    v_PeriodNumber INT;
+    v_DayIn2Week INT;
+    v_New2Week INT;
+    v_2WeekNumber INT := 1;
 BEGIN
     -- Create temporary table for days
     CREATE TEMP TABLE Days (
-        DayNumber INTEGER,
+        DayNumber INT,
         Tag1 TEXT,
         Tag2 TEXT
     ) ON COMMIT DROP;

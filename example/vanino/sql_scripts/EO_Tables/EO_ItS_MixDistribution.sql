@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS t_eo_its_mixdistribution (
-    _ScenarioID INTEGER NOT NULL,
+    _ScenarioID INT NOT NULL,
     objectname VARCHAR(120) NOT NULL,
     fromobjectname VARCHAR(255),
     toobjectname VARCHAR(255),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS t_eo_its_mixdistribution (
     transferpriceperunit FLOAT,
     minunitsperperiod FLOAT,
     maxunitsperperiod FLOAT,
-    transittime INTEGER,
+    transittime INT,
     totalsolutionunits FLOAT,
     maxoppvalueperunit FLOAT,
     totalcost FLOAT,

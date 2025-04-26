@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS T_EOtemp_ActiveVessel (
     _ScenarioID INT,
     vesselid INT,
     vesselcode VARCHAR,
-    eo_vessel VARCHAR,
+    eo_vessel VARCHAR, -- Имя | начало возможной отгрузки после рейда | количество дней требуемых для отгрузки
     dayofstart INT,
     daystoload INT,
     discretedaysves INT,

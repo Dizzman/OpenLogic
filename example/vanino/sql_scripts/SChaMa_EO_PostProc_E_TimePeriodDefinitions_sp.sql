@@ -5,7 +5,7 @@
 -- Description: PostProcessing of EO_E_TimePeriodDefinitions for Telescope
 -- =============================================
 CREATE OR REPLACE PROCEDURE SChaMa_EO_PostProc_E_TimePeriodDefinitions_sp(
-    ConfigId INTEGER
+    ConfigId INT
 )
 LANGUAGE plpgsql
 AS $$
