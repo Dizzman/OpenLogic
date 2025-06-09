@@ -23,8 +23,8 @@ BEGIN
         'Loc',
         eo_vessel,
         'Activity',
-        'Location',
-        daystoload
+        'Location', -- ограничеваем Location
+        daystoload -- вычисляется количество дней огрузки в SChaMa_EOtemp_ActiveVessel_sp как MaxVolume/скорость  - OK
     FROM
         t_eotemp_activevessel
     WHERE

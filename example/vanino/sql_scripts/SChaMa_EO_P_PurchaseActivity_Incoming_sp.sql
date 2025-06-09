@@ -4,6 +4,7 @@
 -- Project:     SChaMa - Vanino
 -- Description: Filling EO_P_PurchaseActivity with incoming purchase data
 -- =============================================
+-- формируем позиции что является продажей
 CREATE OR REPLACE PROCEDURE schama_eo_p_purchaseactivity_incoming_sp(
     IN ConfigId INT
 )

@@ -13,6 +13,10 @@ BEGIN
     WHERE _ScenarioID = ConfigId;
 
     -- Локации в "Sales"
+    -- Location : Ves01|PANEMORFI|1|1|Loc|01 - Имя | начало возможной отгрузки после рейда | количество дней требуемых для отгрузки| Loc| Период когда возможна отгрузка
+    -- это индекс переменной объема который поступит из всех штабелей  в period
+    -- X(ves_i,period)
+    -- Атрибут ограничивает макисмальное количество UnitsOrValue в Одноименном атрибуте - кол-во дней отгрузки
     INSERT INTO T_EO_E_LocationDefinitions
         (_ScenarioID, Location, Tag1, Tag2, DecisionSwitch)
     SELECT DISTINCT
@@ -32,7 +36,9 @@ BEGIN
             c.NumberOf2WeekPeriods * 14 - av.DaysToLoad >= tpd.PeriodIndex
         AND tpd.PeriodIndex <= av.DayOfStart + av.MaxShiftDays;
 
-    -- Локации в "Ships"
+    -- Локации в "Ships"  - типа Название судна|1|1|Loc - используется для ограничений кол-ва дней отгрузки через атрибут
+    -- и в объекте Sales привязаны качества на этот Loc
+    --
     INSERT INTO T_EO_E_LocationDefinitions
         (_ScenarioID, Location, Tag1, Tag2, DecisionSwitch, Attribute1)
     SELECT
@@ -47,7 +53,7 @@ BEGIN
     WHERE
         av._ScenarioID = ConfigId;
 
-    -- Локации в "Incoming" и "Piles"
+    -- Локации в "Incoming" и "Piles" -делаются open
     INSERT INTO T_EO_E_LocationDefinitions
         (_ScenarioID, Location, Tag1, DecisionSwitch)
     VALUES

@@ -24,7 +24,7 @@ BEGIN
         TRIM(TRAILING FROM (v.VesselCode || '|' || v.VesselName || '|' || CAST((v.DaysBeforeArrival + 1) AS VARCHAR(3)) || '|' || CAST(CEILING(v.VolumeMax/v.MaxLoadSpeedReal) AS VARCHAR(1)))),
         0,
         v.DaysBeforeArrival + 1,
-        CEILING(v.VolumeMax/v.MaxLoadSpeedReal),
+        CEILING(v.VolumeMax/v.MaxLoadSpeedReal), -- это последний || там кол-во дней отгрузки
         v.Demurrage/1000,
         v.MaxLoadSpeedReal/1000,
         v.VolumeMin/1000,

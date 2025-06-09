@@ -15,7 +15,7 @@ BEGIN
 
     -- Insert into temp table - Sales locations
     INSERT INTO temp_loc_mtp
-    SELECT  loc.location,
+    SELECT  loc.location, -- Sale
             tpd.timeperiod,
             CASE WHEN tpd.tag1 NOT IN ('H', 'W')
                  THEN CASE
